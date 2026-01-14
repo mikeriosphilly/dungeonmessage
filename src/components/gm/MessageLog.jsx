@@ -10,10 +10,14 @@ export default function MessageLog({ items }) {
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {items.map((m) => {
-            const time = new Date(m.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+            // Prefer sent_at for correct ordering/meaning, fall back to created_at
+            const ts = m.sent_at || m.created_at;
+            const time = ts
+              ? new Date(ts).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "";
 
             const recipientNames = (m.recipients || [])
               .map((r) => r.display_name)
@@ -41,14 +45,46 @@ export default function MessageLog({ items }) {
                     display: "flex",
                     justifyContent: "space-between",
                     gap: 12,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     fontSize: 12,
                     color: "#666",
                   }}
                 >
-                  <div>{recipientsLabel}</div>
-                  <div>{time}</div>
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {recipientsLabel}
+                  </div>
+                  <div style={{ whiteSpace: "nowrap" }}>{time}</div>
                 </div>
+
+                {/* Thumbnail preview if image_url exists */}
+                {m.image_url && (
+                  <a
+                    href={m.image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "block",
+                      marginBottom: 10,
+                      textDecoration: "none",
+                    }}
+                    title="Open image"
+                  >
+                    <img
+                      src={m.image_url}
+                      alt="Message attachment"
+                      style={{
+                        width: 120,
+                        height: 80,
+                        objectFit: "cover",
+                        borderRadius: 12,
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        background: "#000",
+                        display: "block",
+                      }}
+                      loading="lazy"
+                    />
+                  </a>
+                )}
 
                 <div
                   style={{

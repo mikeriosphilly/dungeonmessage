@@ -1,4 +1,5 @@
 import { gmStyles as styles } from "../../styles/gmStyles";
+import { avatarSrcFromKey } from "../../lib/avatars";
 
 export default function PlayerGrid({ tableLoaded, players, error }) {
   return (
@@ -16,9 +17,19 @@ export default function PlayerGrid({ tableLoaded, players, error }) {
       <div style={styles.playerGrid}>
         {players.map((p) => (
           <div key={p.id} style={styles.playerCard}>
-            <div style={styles.avatar} aria-hidden="true">
-              {p.display_name?.trim()?.[0]?.toUpperCase() || "?"}
-            </div>
+            <img
+              src={avatarSrcFromKey(p.avatar_key)}
+              alt=""
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 999,
+                objectFit: "cover",
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: "#fff",
+              }}
+            />
+
             <div style={styles.playerName}>{p.display_name}</div>
           </div>
         ))}

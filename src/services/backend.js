@@ -21,7 +21,7 @@ export async function startTable(tableName) {
   return data; // returns the new table row with code
 }
 
-export async function joinTable(code, displayName) {
+export async function joinTable(code, displayName, avatarKey) {
   const tableCode = code.trim().toUpperCase();
 
   const { data: table, error: tableErr } = await supabase
@@ -38,6 +38,7 @@ export async function joinTable(code, displayName) {
     .insert({
       table_id: table.id,
       display_name: displayName.trim(),
+      avatar_key: avatarKey,
       avatar_seed: crypto.randomUUID(),
     })
     .select("*")

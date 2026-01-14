@@ -1,6 +1,123 @@
 import { theme } from "./theme";
 
 export const gmStyles = {
+  sectionHeaderRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  editingBadge: {
+    fontSize: 12,
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.borderStrong}`,
+    background: theme.colors.surface2,
+    color: theme.colors.text,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+
+  checkboxRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    userSelect: "none",
+    marginTop: 8,
+  },
+  checkboxLabel: {
+    color: theme.colors.text,
+    fontWeight: 700,
+  },
+
+  pickLabel: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  pillWrap: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  pill: {
+    border: `1px solid ${theme.colors.borderStrong}`,
+    background: "#fff",
+    color: theme.colors.text,
+    padding: "8px 10px",
+    borderRadius: 999,
+    cursor: "pointer",
+    fontWeight: 650,
+  },
+  pillSelected: {
+    background: theme.colors.text,
+    color: "#fff",
+    border: `1px solid ${theme.colors.borderStrong}`,
+  },
+
+  attachButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: `1px solid ${theme.colors.borderStrong}`,
+    background: theme.colors.surface2,
+    color: theme.colors.text,
+    cursor: "pointer",
+    fontWeight: 800,
+  },
+  thumbWrap: {
+    position: "relative",
+    width: 140,
+    height: 90,
+    borderRadius: 14,
+    overflow: "hidden",
+    border: `1px solid ${theme.colors.border}`,
+    background: "#000",
+  },
+  thumbImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  thumbRemove: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.35)",
+    background: "rgba(0,0,0,0.55)",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: 18,
+    lineHeight: "28px",
+    textAlign: "center",
+    fontWeight: 900,
+  },
+
+  actionRow: {
+    display: "flex",
+    gap: 10,
+    marginTop: 12,
+  },
+  linkButton: {
+    marginTop: 10,
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    color: "#444",
+    textDecoration: "underline",
+    fontWeight: 700,
+  },
+
   wrap: {
     minHeight: "100vh",
     display: "grid",

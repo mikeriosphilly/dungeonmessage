@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { avatarSrcFromKey } from "../lib/avatars";
 
 export default function PlayerFeed() {
   const { code } = useParams();
@@ -60,7 +61,7 @@ export default function PlayerFeed() {
     async function loadPlayer() {
       const { data, error } = await supabase
         .from("players")
-        .select("id, display_name")
+        .select("id, display_name, avatar_key")
         .eq("id", storedPlayerId)
         .single();
 
@@ -75,7 +76,7 @@ export default function PlayerFeed() {
     };
   }, [storedPlayerId]);
 
-  // Initial load of messages for this player (KEEPING YOUR WORKING VERSION)
+  // Initial load of messages for this player
   useEffect(() => {
     if (!storedPlayerId) return;
 
@@ -103,7 +104,7 @@ export default function PlayerFeed() {
 
       const { data: msgs, error: msgErr } = await supabase
         .from("messages")
-        .select("id, body, created_at, deleted_at")
+        .select("id, body, created_at, deleted_at, image_url")
         .in("id", ids)
         .is("deleted_at", null);
 
@@ -138,7 +139,7 @@ export default function PlayerFeed() {
     };
   }, [storedPlayerId]);
 
-  // Realtime: new recipient rows for this player (KEEPING YOUR WORKING VERSION)
+  // Realtime: new recipient rows for this player
   useEffect(() => {
     if (!storedPlayerId) return;
 
@@ -155,9 +156,10 @@ export default function PlayerFeed() {
         async (payload) => {
           const rec = payload.new;
 
+          // IMPORTANT: include image_url here too
           const { data: msg } = await supabase
             .from("messages")
-            .select("id, body, created_at, deleted_at")
+            .select("id, body, created_at, deleted_at, image_url")
             .eq("id", rec.message_id)
             .single();
 
@@ -199,9 +201,19 @@ export default function PlayerFeed() {
         {/* Player identity, no "You are" label */}
         {player && (
           <div style={styles.playerHeader}>
-            <div style={styles.playerAvatar} aria-hidden="true">
-              {player.display_name?.trim()?.[0]?.toUpperCase() || "?"}
-            </div>
+            <img
+              src={avatarSrcFromKey(player.avatar_key)}
+              alt=""
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 999,
+                objectFit: "cover",
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: "#fff",
+              }}
+            />
+
             <div style={styles.playerName}>{player.display_name}</div>
           </div>
         )}
@@ -220,7 +232,23 @@ export default function PlayerFeed() {
                     minute: "2-digit",
                   })}
                 </div>
-                <div style={styles.msgBody}>{m.body}</div>
+
+                {m.image_url && (
+                  <img
+                    src={m.image_url}
+                    alt="GM sent image"
+                    style={styles.msgImage}
+                    loading="lazy"
+                  />
+                )}
+
+                {m.body ? (
+                  <div style={styles.msgBody}>{m.body}</div>
+                ) : (
+                  !m.image_url && (
+                    <div style={{ color: "#666" }}>(No message text)</div>
+                  )
+                )}
               </div>
             ))
           )}
@@ -287,5 +315,16 @@ const styles = {
     background: "#fff",
   },
   msgMeta: { fontSize: 12, color: "#666", marginBottom: 6 },
+
+  msgImage: {
+    width: "100%",
+    maxHeight: 360,
+    objectFit: "contain",
+    borderRadius: 12,
+    marginBottom: 10,
+    border: "1px solid rgba(0,0,0,0.12)",
+    background: "#000",
+  },
+
   msgBody: { color: "#111", whiteSpace: "pre-wrap", lineHeight: 1.45 },
 };
