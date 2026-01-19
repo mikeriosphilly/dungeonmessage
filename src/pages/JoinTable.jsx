@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
+import { ensureAnonAuth } from "../lib/auth";
+import { supabase } from "../lib/supabaseClient";
+
+const GM_INACTIVITY_HOURS = 6;
 
 export default function JoinTable() {
   const [avatarKey, setAvatarKey] = useState(() => randomAvatarKey());
@@ -12,12 +16,53 @@ export default function JoinTable() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const navigate = useNavigate();
+  const [tableOk, setTableOk] = useState(false);
 
-  const canJoin = code.trim().length >= 4 && name.trim().length > 0 && !busy;
+  // ✅ NEW: gate validation until anon auth is truly ready
+  const [authReady, setAuthReady] = useState(false);
+
+  const navigate = useNavigate();
 
   const popoverRef = useRef(null);
   const buttonRef = useRef(null);
+
+  const canJoin =
+    code.trim().length >= 4 && name.trim().length > 0 && !busy && tableOk;
+
+  const keys = useMemo(() => {
+    return Array.isArray(AVATAR_KEYS) && AVATAR_KEYS.length
+      ? AVATAR_KEYS
+      : ["01", "02", "03", "04", "05", "06", "07"];
+  }, []);
+
+  // 1) ensure anon auth once
+  useEffect(() => {
+    let alive = true;
+
+    async function boot() {
+      try {
+        setError("");
+        await ensureAnonAuth();
+
+        // optional: verify we actually have a session now
+        const { data } = await supabase.auth.getSession();
+        console.log("JoinTable boot: session?", !!data?.session);
+
+        if (!alive) return;
+        setAuthReady(true);
+      } catch (e) {
+        console.error("JoinTable boot auth error:", e);
+        if (!alive) return;
+        setAuthReady(false);
+        setError(e?.message || "Auth failed. Please refresh and try again.");
+      }
+    }
+
+    boot();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Close avatar picker when clicking outside
   useEffect(() => {
@@ -47,27 +92,116 @@ export default function JoinTable() {
     };
   }, [pickerOpen]);
 
+  // 2) validate table code (only AFTER authReady)
+  useEffect(() => {
+    const trimmed = code.trim().toUpperCase();
+
+    setTableOk(false);
+
+    // don't validate until auth is actually ready
+    if (!authReady) {
+      setError("");
+      return;
+    }
+
+    if (trimmed.length < 4) {
+      setError("");
+      return;
+    }
+
+    let cancelled = false;
+
+    const t = setTimeout(async () => {
+      try {
+        setError("");
+
+        // extra safety: ensure anon auth again (cheap)
+        await ensureAnonAuth();
+
+        const { data: tableRes, error: tableErr } = await supabase.rpc(
+          "get_table_public",
+          { p_code: trimmed },
+        );
+
+        if (cancelled) return;
+
+        console.log("get_table_public result:", {
+          code: trimmed,
+          tableRes,
+          tableErr,
+          type: Array.isArray(tableRes) ? "array" : typeof tableRes,
+        });
+
+        if (tableErr) {
+          setTableOk(false);
+          setError(tableErr.message || "Could not validate table. Try again.");
+          return;
+        }
+
+        // ✅ handle array OR object, and handle { table: {...} } OR direct row
+        const row = Array.isArray(tableRes) ? tableRes[0] : tableRes;
+        const table = row?.table ?? row ?? null;
+
+        if (!table) {
+          setTableOk(false);
+          setError("That table code does not exist.");
+          return;
+        }
+
+        if (table.status !== "active") {
+          setTableOk(false);
+          setError("That session is not active.");
+          return;
+        }
+
+        const last = table.last_gm_activity_at
+          ? new Date(table.last_gm_activity_at).getTime()
+          : 0;
+
+        const now = Date.now();
+        const maxAgeMs = GM_INACTIVITY_HOURS * 60 * 60 * 1000;
+
+        if (!last || now - last > maxAgeMs) {
+          setTableOk(false);
+          setError("That session looks inactive. Ask your GM to reopen it.");
+          return;
+        }
+
+        setTableOk(true);
+        setError("");
+      } catch (e) {
+        console.error("JoinTable validate error:", e);
+        if (cancelled) return;
+        setTableOk(false);
+        setError(e?.message || "Could not validate table. Try again.");
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [code, authReady]);
+
   async function onJoin() {
     setBusy(true);
     setError("");
+
     try {
+      await ensureAnonAuth();
+
       const { table, player } = await joinTable(code, name, avatarKey);
+
       navigate(`/table/${table.code}?playerId=${player.id}`);
     } catch (e) {
+      console.error("JoinTable onJoin error:", e);
       setError(
-        e.message || "Could not join table. Check the code and try again."
+        e?.message || "Could not join table. Check the code and try again.",
       );
     } finally {
       setBusy(false);
     }
   }
-
-  const keys = useMemo(() => {
-    // Prefer explicit exported list if you made one, else fallback to 01..07
-    return Array.isArray(AVATAR_KEYS) && AVATAR_KEYS.length
-      ? AVATAR_KEYS
-      : ["01", "02", "03", "04", "05", "06", "07"];
-  }, []);
 
   return (
     <div style={styles.wrap}>
@@ -96,7 +230,6 @@ export default function JoinTable() {
               style={styles.avatarPreviewImg}
             />
 
-            {/* Popover */}
             {pickerOpen && (
               <div ref={popoverRef} style={styles.popover}>
                 <div style={styles.popoverTitle}>Choose your avatar</div>

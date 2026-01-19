@@ -15,7 +15,8 @@ export default function StartTable() {
     setError("");
     try {
       const table = await startTable(name.trim());
-      navigate(`/gm/${table.code}`);
+      console.log("startTable returned:", table);
+      navigate(`/gm/${table.gm_secret}`);
     } catch (e) {
       setError(e.message || "Something went wrong starting the table.");
     } finally {
