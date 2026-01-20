@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
@@ -22,6 +22,15 @@ export default function JoinTable() {
   const [authReady, setAuthReady] = useState(false);
 
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+
+  // Prefill code from /join?code=XXXX
+  useEffect(() => {
+    const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
+    if (fromUrl && fromUrl !== code) setCode(fromUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const popoverRef = useRef(null);
   const buttonRef = useRef(null);

@@ -30,6 +30,9 @@ export default function GmDashboard() {
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
 
+  // copied state
+  const [copied, setCopied] = useState(false);
+
   // composer state
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -546,6 +549,48 @@ export default function GmDashboard() {
     }
   }
 
+  async function copyShareLink() {
+    if (!shareUrl) return;
+
+    let copiedOk = false;
+
+    try {
+      // Modern clipboard API
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        copiedOk = true;
+      }
+    } catch (e) {
+      // fall through to legacy method
+    }
+
+    if (!copiedOk) {
+      // Fallback for older browsers / some mobile cases
+      const ta = document.createElement("textarea");
+      ta.value = shareUrl;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "0";
+      ta.style.left = "0";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+
+      try {
+        document.execCommand("copy");
+        copiedOk = true;
+      } finally {
+        document.body.removeChild(ta);
+      }
+    }
+
+    if (copiedOk) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  }
+
   const sendDisabled =
     sending ||
     imageUploading ||
@@ -561,6 +606,12 @@ export default function GmDashboard() {
 
   const imageUrlForUi = imagePreviewUrl;
 
+  // Shareable player join link
+  const tableCode = table?.code || "";
+  const shareUrl = tableCode
+    ? `${window.location.origin}/join?code=${tableCode}`
+    : "";
+
   // session expiry (24h after creation)
   const expiresAt = table?.created_at
     ? new Date(table.created_at).getTime() + 24 * 60 * 60 * 1000
@@ -574,6 +625,22 @@ export default function GmDashboard() {
     <div style={styles.wrap}>
       <div style={styles.card}>
         <GmHeader tableName={table?.name} tableCode={table?.code || ""} />
+        <div style={localStyles.shareRow}>
+          <button
+            type="button"
+            onClick={copyShareLink}
+            disabled={!shareUrl}
+            style={{
+              ...localStyles.shareBtn,
+              ...(shareUrl ? null : localStyles.shareBtnDisabled),
+            }}
+            title="Copy a join link to share with players"
+          >
+            Share
+          </button>
+
+          {copied && <div style={localStyles.copiedTag}>Copied!</div>}
+        </div>
 
         {error && <p style={styles.error}>{error}</p>}
 
@@ -666,6 +733,39 @@ export default function GmDashboard() {
 }
 
 const localStyles = {
+  copiedTag: {
+    alignSelf: "center",
+    marginLeft: 10,
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#111",
+    background: "rgba(0,0,0,0.06)",
+    borderRadius: 999,
+    padding: "6px 10px",
+    whiteSpace: "nowrap",
+  },
+
+  shareRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  shareBtn: {
+    border: "1px solid rgba(0,0,0,0.18)",
+    background: "#fff",
+    color: "#111",
+    borderRadius: 12,
+    padding: "10px 12px",
+    cursor: "pointer",
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  shareBtnDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+  },
+
   expiryBanner: {
     border: "1px solid rgba(0,0,0,0.12)",
     background: "#fff7ed",
