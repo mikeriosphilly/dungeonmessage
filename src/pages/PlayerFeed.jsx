@@ -192,7 +192,6 @@ export default function PlayerFeed() {
           style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
         >
           <h1 style={styles.title}>{titleText}</h1>
-          <div style={styles.pill}>Table: {tableCode}</div>
         </div>
 
         {(loadingTable || loadingPlayer) && (
