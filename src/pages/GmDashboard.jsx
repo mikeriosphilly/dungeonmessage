@@ -240,6 +240,7 @@ export default function GmDashboard() {
       }
 
       const t = data?.table || null;
+      console.log("GM table:", t);
 
       if (!t) {
         setError("Table not found (or access denied by RLS).");
@@ -560,12 +561,36 @@ export default function GmDashboard() {
 
   const imageUrlForUi = imagePreviewUrl;
 
+  // session expiry (24h after creation)
+  const expiresAt = table?.created_at
+    ? new Date(table.created_at).getTime() + 24 * 60 * 60 * 1000
+    : null;
+
+  const msLeft = expiresAt ? expiresAt - Date.now() : null;
+  const showExpiryWarning =
+    msLeft !== null && msLeft > 0 && msLeft <= 60 * 60 * 1000;
+
   return (
     <div style={styles.wrap}>
       <div style={styles.card}>
         <GmHeader tableName={table?.name} tableCode={table?.code || ""} />
 
         {error && <p style={styles.error}>{error}</p>}
+
+        {showExpiryWarning && (
+          // TODO (final styles): design persistent session-expiry banner
+          // - visually distinct but non-alarming
+          // - mobile-friendly
+          // - consider countdown / progress indicator
+
+          <div style={localStyles.expiryBanner}>
+            <div style={localStyles.expiryTitle}>Session ending soon</div>
+            <div style={localStyles.expiryBody}>
+              This session will automatically end in about{" "}
+              {Math.ceil(msLeft / 60000)} minutes.
+            </div>
+          </div>
+        )}
 
         <MessageComposer
           players={players}
@@ -641,6 +666,22 @@ export default function GmDashboard() {
 }
 
 const localStyles = {
+  expiryBanner: {
+    border: "1px solid rgba(0,0,0,0.12)",
+    background: "#fff7ed",
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  expiryTitle: {
+    fontWeight: 800,
+    marginBottom: 4,
+  },
+  expiryBody: {
+    color: "#333",
+    lineHeight: 1.35,
+  },
   draftCard: {
     display: "grid",
     gridTemplateColumns: "1fr auto",
