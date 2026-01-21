@@ -1,12 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { gmStyles as styles } from "../styles/gmStyles";
 
-import GmHeader from "../components/gm/GmHeader";
 import PlayerGrid from "../components/gm/PlayerGrid";
 import MessageLog from "../components/gm/MessageLog";
 import MessageComposer from "../components/gm/MessageComposer";
+import { avatarSrcFromKey } from "../lib/avatars";
 
 const BUCKET = "message-images";
 
@@ -22,9 +21,46 @@ const ALLOWED_IMAGE_TYPES = new Set([
 // Soft limit example: 30 image messages per table per hour
 const IMAGE_SOFT_LIMIT_PER_HOUR = 30;
 
+function IconCopy(props) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M9 9h10v12H9z" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function IconShare(props) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+      <path d="M16 6l-4-4-4 4" />
+      <path d="M12 2v14" />
+    </svg>
+  );
+}
+
 export default function GmDashboard() {
+  const [sendingDraftId, setSendingDraftId] = useState(null);
   const { gmSecret } = useParams();
-  console.log("gmSecret param:", gmSecret);
 
   const [table, setTable] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -32,6 +68,9 @@ export default function GmDashboard() {
 
   // copied state
   const [copied, setCopied] = useState(false);
+
+  // drafts accordion
+  const [draftsOpen, setDraftsOpen] = useState(false);
 
   // composer state
   const [draft, setDraft] = useState("");
@@ -202,25 +241,21 @@ export default function GmDashboard() {
   }, [gmSecret]);
 
   // Helper: refresh drafts list
-  const refreshDrafts = useCallback(
-    async (tableId) => {
-      const { data, error } = await supabase
-        .from("messages")
-        .select("id, body, created_at, status, image_url")
-        .eq("table_id", tableId)
-        .eq("status", "draft")
-        .order("created_at", { ascending: false })
-        .limit(50);
+  const refreshDrafts = useCallback(async () => {
+    if (!gmSecret) return;
 
-      if (error) {
-        setError(error.message);
-        return;
-      }
+    const { data, error } = await supabase.rpc("gm_get_drafts", {
+      p_gm_secret: gmSecret,
+      p_limit: 50,
+    });
 
-      setDraftItems(data || []);
-    },
-    [setDraftItems],
-  );
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setDraftItems(data || []);
+  }, [gmSecret]);
 
   // 1) Load table by gmSecret (RPC, RLS-safe)
   useEffect(() => {
@@ -244,7 +279,6 @@ export default function GmDashboard() {
       }
 
       const t = data?.table || null;
-      console.log("GM table:", t);
 
       if (!t) {
         setError("Table not found (or access denied by RLS).");
@@ -280,17 +314,13 @@ export default function GmDashboard() {
       .channel(`tw:table:${table.id}`, {
         config: { broadcast: { ack: false } },
       })
-      .on("broadcast", { event: "player_joined" }, (payload) => {
-        console.log("GM got player_joined broadcast:", payload);
-
+      .on("broadcast", { event: "player_joined" }, () => {
         setTimeout(() => {
           if (!alive) return;
           loadPlayers();
         }, 150);
       })
-      .subscribe((status) => {
-        console.log("GM broadcast channel status:", status);
-      });
+      .subscribe();
 
     return () => {
       alive = false;
@@ -308,7 +338,7 @@ export default function GmDashboard() {
       if (!alive) return;
       setError("");
       await refreshLog();
-      await refreshDrafts(table.id);
+      await refreshDrafts();
     })();
 
     return () => {
@@ -336,7 +366,7 @@ export default function GmDashboard() {
           setTimeout(async () => {
             if (!alive) return;
             await refreshLog();
-            await refreshDrafts(table.id);
+            await refreshDrafts();
           }, 150);
         },
       )
@@ -352,7 +382,7 @@ export default function GmDashboard() {
           setTimeout(async () => {
             if (!alive) return;
             await refreshLog();
-            await refreshDrafts(table.id);
+            await refreshDrafts();
           }, 150);
         },
       )
@@ -431,6 +461,9 @@ export default function GmDashboard() {
     setSavingDraft(true);
     setError("");
 
+    const draftSendToEveryone = !!sendToEveryone;
+    const draftRecipientIds = draftSendToEveryone ? null : selectedIds;
+
     try {
       let uploadedUrl = null;
       if (imageFile) uploadedUrl = await uploadImageAndGetUrl(imageFile);
@@ -439,34 +472,30 @@ export default function GmDashboard() {
         uploadedUrl ||
         (imagePreviewUrl?.startsWith("http") ? imagePreviewUrl : null);
 
-      if (editingDraftId) {
-        const updatePayload = { body: draft.trim(), status: "draft" };
-        if (uploadedUrl) updatePayload.image_url = uploadedUrl;
-        else if (imageRemoved) updatePayload.image_url = null;
+      const draftSendToEveryone = !!sendToEveryone;
+      const draftRecipientIds = draftSendToEveryone ? null : selectedIds;
 
-        const { error: upErr } = await supabase
-          .from("messages")
-          .update(updatePayload)
-          .eq("id", editingDraftId)
-          .eq("table_id", table.id);
+      const { data: draftId, error: saveErr } = await supabase.rpc(
+        "gm_save_draft",
+        {
+          p_gm_secret: gmSecret,
+          p_body: draft.trim(),
+          p_image_url: imageRemoved ? null : nextImageUrl,
+          p_message_id: editingDraftId || null,
+          p_draft_send_to_everyone: draftSendToEveryone,
+          p_draft_recipient_ids: draftRecipientIds,
+        },
+      );
 
-        if (upErr) throw upErr;
-      } else {
-        const { error: insErr } = await supabase.from("messages").insert({
-          table_id: table.id,
-          kind: "text",
-          body: draft.trim(),
-          status: "draft",
-          image_url: nextImageUrl,
-        });
+      if (saveErr) throw saveErr;
 
-        if (insErr) throw insErr;
-      }
+      // optional: keep editingDraftId in sync if you want
+      // if (!editingDraftId && draftId) setEditingDraftId(draftId);
 
       await touchGmActivity();
 
       clearComposer();
-      await refreshDrafts(table.id);
+      await refreshDrafts();
     } catch (e) {
       setError(e.message || "Failed to save draft.");
     } finally {
@@ -482,26 +511,29 @@ export default function GmDashboard() {
     setImagePreviewUrl(item.image_url || "");
     setImageRemoved(false);
 
-    setSelectedIds([]);
+    const toEveryone = item?.draft_send_to_everyone ?? true;
+    setSendToEveryone(toEveryone);
+
+    const ids = Array.isArray(item?.draft_recipient_ids)
+      ? item.draft_recipient_ids
+      : [];
+    setSelectedIds(toEveryone ? [] : ids);
   }
 
   async function deleteDraft(itemId) {
-    if (!table?.id) return;
-
     setError("");
 
     try {
-      const { error } = await supabase
-        .from("messages")
-        .update({ status: "deleted" })
-        .eq("id", itemId)
-        .eq("table_id", table.id);
+      const { error } = await supabase.rpc("gm_delete_draft", {
+        p_gm_secret: gmSecret,
+        p_message_id: itemId,
+      });
 
       if (error) throw error;
 
       if (editingDraftId === itemId) clearComposer();
 
-      await refreshDrafts(table.id);
+      await refreshDrafts();
       await touchGmActivity();
     } catch (e) {
       setError(e.message || "Failed to delete draft.");
@@ -542,11 +574,48 @@ export default function GmDashboard() {
 
       clearComposer();
       await refreshLog();
-      await refreshDrafts(table.id);
+      await refreshDrafts();
     } catch (e) {
       setError(e.message || "Failed to send message.");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function sendDraft(draft) {
+    if (!table?.id) return;
+    if (sendingDraftId === draft.id) return;
+
+    setSendingDraftId(draft.id);
+    setError("");
+
+    try {
+      const recipientIds = draft.draft_send_to_everyone
+        ? players.map((p) => p.id)
+        : Array.isArray(draft.draft_recipient_ids)
+          ? draft.draft_recipient_ids
+          : [];
+
+      if (!recipientIds.length) {
+        throw new Error("Draft has no recipients.");
+      }
+
+      const { error } = await supabase.rpc("gm_send_message", {
+        p_gm_secret: gmSecret,
+        p_body: draft.body || "",
+        p_recipient_ids: recipientIds,
+        p_image_url: draft.image_url || null,
+        p_message_id: draft.id,
+      });
+
+      if (error) throw error;
+
+      await refreshLog();
+      await refreshDrafts();
+    } catch (e) {
+      setError(e.message || "Failed to send draft.");
+    } finally {
+      setSendingDraftId(null);
     }
   }
 
@@ -596,6 +665,26 @@ export default function GmDashboard() {
     }
   }
 
+  async function nativeShare() {
+    if (!shareUrl) return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join TableWhisper",
+          text: "Join my table:",
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // user cancelled or share failed
+      }
+    }
+
+    // fallback: copy
+    await copyShareLink();
+  }
+
   const sendDisabled =
     sending ||
     imageUploading ||
@@ -620,202 +709,301 @@ export default function GmDashboard() {
   const showExpiryWarning =
     msLeft !== null && msLeft > 0 && msLeft <= 60 * 60 * 1000;
 
+  const playerCount = players?.length || 0;
+
+  const playerChips = useMemo(() => {
+    const list = Array.isArray(players) ? players : [];
+    return list.slice(0, 6).map((p, idx) => {
+      const name =
+        p?.display_name || p?.name || p?.username || `Player ${idx + 1}`;
+
+      const avatarUrl = p?.avatar_key ? avatarSrcFromKey(p.avatar_key) : "";
+
+      const initials = String(name)
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((s) => s[0]?.toUpperCase())
+        .join("");
+
+      return { id: p?.id ?? `${idx}`, name, avatarUrl, initials };
+    });
+  }, [players]);
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          {/* Top header row: title + table code card */}
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0">
-              <h1 className="text-4xl font-extrabold tracking-tight text-black">
-                {table?.name || "Game Master Dashboard"}
-              </h1>
-              <p className="mt-2 text-sm font-medium text-gray-600">
-                Game Master Dashboard
-              </p>
+        {/* Top header row */}
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-950">
+              {table?.name || "Game Master Dashboard"}
+            </h1>
+            <p className="mt-2 text-sm font-medium text-gray-600">
+              Game Master Dashboard
+            </p>
+          </div>
+
+          {/* Table code card */}
+          <div className="w-full max-w-sm rounded-2xl border border-purple-200 bg-purple-50/60 p-5">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+              Table Code
             </div>
 
-            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-gray-50 p-5">
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <div className="text-2xl font-extrabold tracking-wider text-purple-700">
+                {table?.code || "-----"}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={copyShareLink}
+                  disabled={!shareUrl}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-200 bg-white text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Copy join link"
+                >
+                  <IconCopy />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={nativeShare}
+                  disabled={!shareUrl}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-200 bg-white text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Share"
+                >
+                  <IconShare />
+                </button>
+              </div>
+            </div>
+
+            {copied && (
+              <div className="mt-3 inline-flex rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-gray-900">
+                Copied!
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Errors */}
+        {error && (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+            {error}
+          </div>
+        )}
+
+        {/* Expiry warning */}
+        {showExpiryWarning && (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="text-sm font-extrabold text-amber-900">
+              Session ending soon
+            </div>
+            <div className="mt-1 text-sm text-amber-900/80">
+              This session will automatically end in about{" "}
+              {Math.ceil(msLeft / 60000)} minutes.
+            </div>
+          </div>
+        )}
+
+        <div className="mt-10 space-y-6">
+          {/* Players strip */}
+          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="text-sm font-semibold text-gray-700">
-                Table Code
+                Players:
               </div>
 
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="text-2xl font-extrabold tracking-wider text-purple-700">
-                  {table?.code || "-----"}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={copyShareLink}
-                    disabled={!shareUrl}
-                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    title="Copy a join link to share with players"
+              <div className="flex -space-x-2">
+                {playerChips.map((p) => (
+                  <div
+                    key={p.id}
+                    className="h-9 w-9 overflow-hidden rounded-full border-2 border-white bg-gray-200 shadow-sm"
+                    title={p.name}
                   >
-                    Copy link
-                  </button>
-                </div>
+                    {p.avatarUrl ? (
+                      <img
+                        src={p.avatarUrl}
+                        alt={p.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-extrabold text-gray-700">
+                        {p.initials || "?"}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
-              {copied && (
-                <div className="mt-3 inline-flex rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-gray-900">
-                  Copied!
-                </div>
-              )}
+              <div className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                {playerCount} {playerCount === 1 ? "player" : "players"}
+              </div>
+            </div>
+
+            {/* Keep your existing PlayerGrid for now, hidden from layout.
+                You can remove this later once you fully replace PlayerGrid UI. */}
+            <div className="hidden">
+              <PlayerGrid
+                tableLoaded={!!table}
+                players={players}
+                error={error}
+              />
             </div>
           </div>
 
-          {/* Legacy error and warning UI stays intact for now */}
-          {error && <p style={styles.error}>{error}</p>}
+          {/* Send a Message card (MessageComposer lives inside) */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h2 className="text-2xl font-extrabold text-gray-950">
+              Send a Message
+            </h2>
 
-          {showExpiryWarning && (
-            <div style={localStyles.expiryBanner}>
-              <div style={localStyles.expiryTitle}>Session ending soon</div>
-              <div style={localStyles.expiryBody}>
-                This session will automatically end in about{" "}
-                {Math.ceil(msLeft / 60000)} minutes.
-              </div>
+            <div className="mt-4">
+              <MessageComposer
+                players={players}
+                draft={draft}
+                setDraft={setDraft}
+                sending={sending}
+                sendDisabled={sendDisabled}
+                sendMessage={sendMessage}
+                sendToEveryone={sendToEveryone}
+                setSendToEveryone={setSendToEveryone}
+                selectedIds={selectedIds}
+                toggleRecipient={toggleRecipient}
+                imageUrl={imageUrlForUi}
+                onPickImage={onPickImage}
+                onRemoveImage={onRemoveImage}
+                imageUploading={imageUploading}
+                saveForLater={saveForLater}
+                saveDisabled={saveDisabled}
+                savingDraft={savingDraft}
+                editingDraftId={editingDraftId}
+                clearComposer={clearComposer}
+              />
             </div>
-          )}
+          </div>
 
-          <div className="mt-8 space-y-8">
-            <MessageComposer
-              players={players}
-              draft={draft}
-              setDraft={setDraft}
-              sending={sending}
-              sendDisabled={sendDisabled}
-              sendMessage={sendMessage}
-              sendToEveryone={sendToEveryone}
-              setSendToEveryone={setSendToEveryone}
-              selectedIds={selectedIds}
-              toggleRecipient={toggleRecipient}
-              imageUrl={imageUrlForUi}
-              onPickImage={onPickImage}
-              onRemoveImage={onRemoveImage}
-              imageUploading={imageUploading}
-              saveForLater={saveForLater}
-              saveDisabled={saveDisabled}
-              savingDraft={savingDraft}
-              editingDraftId={editingDraftId}
-              clearComposer={clearComposer}
-            />
-
-            {/* Drafts */}
-            <div style={styles.section}>
-              <h2 style={styles.sectionTitle}>Drafts</h2>
-
-              {draftItems.length === 0 ? (
-                <p style={styles.muted}>
-                  No drafts yet. Save something spooky.
-                </p>
-              ) : (
-                <div style={{ display: "grid", gap: 10 }}>
-                  {draftItems.map((d) => (
-                    <div key={d.id} style={localStyles.draftCard}>
-                      <button
-                        type="button"
-                        onClick={() => loadDraftIntoComposer(d)}
-                        style={localStyles.draftMainButton}
-                        title="Load this draft into the composer"
-                      >
-                        <div style={localStyles.draftMeta}>
-                          {new Date(d.created_at).toLocaleString([], {
-                            month: "short",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                          {d.image_url ? "  •  📷" : ""}
-                        </div>
-                        <div style={localStyles.draftBody}>
-                          {(d.body || "").trim() || "(empty draft)"}
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => deleteDraft(d.id)}
-                        style={localStyles.draftDelete}
-                        title="Delete draft"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
+          {/* Drafted Messages accordion bar */}
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <button
+              type="button"
+              onClick={() => setDraftsOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-4 px-5 py-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-base font-extrabold text-gray-950">
+                  Drafted Messages
                 </div>
-              )}
-            </div>
+                <div className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-semibold text-gray-700">
+                  {draftItems.length}
+                </div>
+              </div>
 
-            <PlayerGrid tableLoaded={!!table} players={players} error={error} />
-            <MessageLog items={logItems} />
+              <div
+                className={`text-gray-600 transition ${
+                  draftsOpen ? "rotate-180" : ""
+                }`}
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </button>
+
+            {draftsOpen && (
+              <div className="border-t border-gray-200 px-5 py-4">
+                {draftItems.length === 0 ? (
+                  <p className="text-sm text-gray-600">
+                    No drafts yet. Save something spooky.
+                  </p>
+                ) : (
+                  <div className="grid gap-3">
+                    {draftItems.map((d) => (
+                      <div
+                        key={d.id}
+                        className="grid grid-cols-[1fr_auto] items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => loadDraftIntoComposer(d)}
+                          className="text-left"
+                          title="Load this draft into the composer"
+                        >
+                          <div className="text-xs font-semibold text-gray-500">
+                            To:{" "}
+                            {d.draft_send_to_everyone
+                              ? "Everyone"
+                              : Array.isArray(d.draft_recipient_ids) &&
+                                  d.draft_recipient_ids.length
+                                ? d.draft_recipient_ids
+                                    .map(
+                                      (id) =>
+                                        players.find((p) => p.id === id)
+                                          ?.display_name,
+                                    )
+                                    .filter(Boolean)
+                                    .join(", ")
+                                : "(no one selected)"}
+                            {d.image_url ? "  •  📷" : ""}
+                          </div>
+
+                          <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-gray-900">
+                            {(d.body || "").trim() || "(empty draft)"}
+                          </div>
+                        </button>
+
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              sendDraft(d);
+                            }}
+                            className="rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-black"
+                            title="Send this draft"
+                          >
+                            Send
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteDraft(d.id);
+                            }}
+                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+                            title="Delete draft"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Message Log card */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-extrabold text-gray-950">
+              Message Log
+            </h2>
+            <div className="mt-4">
+              <MessageLog items={logItems} />
+            </div>
           </div>
         </div>
       </main>
     </div>
   );
 }
-
-const localStyles = {
-  expiryBanner: {
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff7ed",
-    borderRadius: 14,
-    padding: 12,
-    marginTop: 12,
-    marginBottom: 12,
-  },
-  expiryTitle: {
-    fontWeight: 800,
-    marginBottom: 4,
-  },
-  expiryBody: {
-    color: "#333",
-    lineHeight: 1.35,
-  },
-
-  draftCard: {
-    display: "grid",
-    gridTemplateColumns: "1fr auto",
-    gap: 10,
-    alignItems: "stretch",
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 12,
-  },
-  draftMainButton: {
-    textAlign: "left",
-    border: "none",
-    background: "transparent",
-    padding: 0,
-    cursor: "pointer",
-    display: "grid",
-    gap: 6,
-  },
-  draftMeta: {
-    fontSize: 12,
-    color: "#666",
-  },
-  draftBody: {
-    color: "#111",
-    whiteSpace: "pre-wrap",
-    lineHeight: 1.35,
-    overflow: "hidden",
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-  },
-  draftDelete: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fafafa",
-    color: "#111",
-    borderRadius: 12,
-    padding: "10px 12px",
-    cursor: "pointer",
-    fontWeight: 700,
-    height: "100%",
-    whiteSpace: "nowrap",
-  },
-};

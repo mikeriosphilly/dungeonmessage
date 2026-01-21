@@ -1,5 +1,3 @@
-import { gmStyles as styles } from "../../styles/gmStyles";
-
 export default function MessageComposer({
   players,
   draft,
@@ -19,28 +17,41 @@ export default function MessageComposer({
   onPickImage, // (event) => void
   onRemoveImage, // () => void
   imageUploading, // boolean
+
+  // drafts (optional, but used by the new UI row)
+  saveForLater,
+  saveDisabled,
+  savingDraft,
+  clearComposer,
+  editingDraftId,
 }) {
   return (
-    <div style={styles.section}>
-      <h2 style={styles.sectionTitle}>Send message</h2>
+    <div className="mt-4">
+      {/* Section label (matches your screenshot vibe) */}
+      <div className="text-sm font-medium text-gray-700">Send message</div>
 
-      <label style={localStyles.checkboxRow}>
+      {/* Send to everyone */}
+      <label className="mt-3 flex select-none items-center gap-3 text-sm font-semibold text-gray-900">
         <input
           type="checkbox"
           checked={sendToEveryone}
           onChange={(e) => setSendToEveryone(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
         />
-        <span style={localStyles.checkboxLabel}>Send to everyone</span>
+        <span>Send to everyone</span>
       </label>
 
+      {/* Recipient picker */}
       {!sendToEveryone && (
-        <div style={{ marginTop: 10 }}>
-          <div style={localStyles.pickLabel}>Pick recipients</div>
+        <div className="mt-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Pick recipients
+          </div>
 
           {players.length === 0 ? (
-            <p style={styles.muted}>No players yet.</p>
+            <p className="mt-2 text-sm text-gray-600">No players yet.</p>
           ) : (
-            <div style={localStyles.pillWrap}>
+            <div className="mt-3 flex flex-wrap gap-2">
               {players.map((p) => {
                 const selected = selectedIds.includes(p.id);
                 return (
@@ -48,10 +59,12 @@ export default function MessageComposer({
                     key={p.id}
                     type="button"
                     onClick={() => toggleRecipient(p.id)}
-                    style={{
-                      ...localStyles.pill,
-                      ...(selected ? localStyles.pillSelected : null),
-                    }}
+                    className={[
+                      "rounded-full border px-3 py-2 text-sm font-semibold transition",
+                      selected
+                        ? "border-gray-900 bg-gray-900 text-white"
+                        : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50",
+                    ].join(" ")}
                   >
                     {p.display_name}
                   </button>
@@ -62,158 +75,104 @@ export default function MessageComposer({
         </div>
       )}
 
-      {/* Image attachment: show button ONLY when no image, otherwise show thumb + X */}
-      <div style={{ marginTop: 10 }}>
-        {!imageUrl ? (
-          <label style={localStyles.attachButton}>
-            Attach image
-            <input
-              type="file"
-              accept="image/*"
-              onChange={onPickImage}
-              style={{ display: "none" }}
-            />
-          </label>
-        ) : (
-          <div style={localStyles.thumbWrap}>
-            <img
-              src={imageUrl}
-              alt="Attached"
-              style={localStyles.thumbImg}
-              loading="lazy"
-            />
-            <button
-              type="button"
-              onClick={onRemoveImage}
-              style={localStyles.thumbRemove}
-              aria-label="Remove image"
-              title="Remove image"
-            >
-              ×
-            </button>
-          </div>
-        )}
+      {/* Message */}
+      <div className="mt-4">
+        <div className="text-sm font-medium text-gray-700">Message</div>
 
-        {imageUploading && (
-          <div style={localStyles.uploadingText}>Uploading image…</div>
-        )}
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Type your secret message here..."
+          rows={6}
+          className="mt-2 w-full resize-y rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-gray-300 focus:bg-white focus:ring-0"
+        />
       </div>
 
-      <textarea
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        placeholder="Write a secret note..."
-        style={styles.textarea}
-        rows={4}
-      />
+      {/* Image attachment preview (shows above the buttons like a proper compose flow) */}
+      {(imageUrl || imageUploading) && (
+        <div className="mt-3">
+          {imageUrl && (
+            <div className="relative h-24 w-40 overflow-hidden rounded-2xl border border-gray-200 bg-black">
+              <img
+                src={imageUrl}
+                alt="Attached"
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+              <button
+                type="button"
+                onClick={onRemoveImage}
+                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-black/60 text-white"
+                aria-label="Remove image"
+                title="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
-      <button
-        onClick={sendMessage}
-        disabled={sendDisabled}
-        style={{
-          ...styles.button,
-          marginTop: 12,
-          width: "100%",
-          opacity: sendDisabled ? 0.6 : 1,
-          cursor: sendDisabled ? "not-allowed" : "pointer",
-        }}
-      >
-        {sending ? "Sending..." : "Send"}
-      </button>
+          {imageUploading && (
+            <div className="mt-2 text-xs font-semibold text-gray-500">
+              Uploading image...
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Actions row: Attach, Save, Send */}
+      <div className="mt-4 flex flex-col gap-3 md:flex-row">
+        {/* Attach image */}
+        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 md:w-1/3">
+          <span aria-hidden="true">🖼️</span>
+          <span>Attach Image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onPickImage}
+            className="hidden"
+            disabled={imageUploading || sending}
+          />
+        </label>
+
+        {/* Save as draft */}
+        <button
+          type="button"
+          onClick={saveForLater}
+          disabled={saveDisabled}
+          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          title="Save as draft"
+        >
+          {savingDraft ? "Saving..." : "Save as Draft"}
+        </button>
+
+        {/* Send */}
+        <button
+          type="button"
+          onClick={sendMessage}
+          disabled={sendDisabled}
+          className="w-full rounded-2xl bg-gray-950 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          title="Send message"
+        >
+          {sending ? "Sending..." : "Send Message"}
+        </button>
+      </div>
+
+      {/* Optional helper row (nice UX): show when editing a draft */}
+      {editingDraftId && (
+        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <div className="font-semibold text-gray-700">
+            Editing a saved draft
+          </div>
+
+          <button
+            type="button"
+            onClick={clearComposer}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 }
-
-const localStyles = {
-  checkboxRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    userSelect: "none",
-  },
-  checkboxLabel: {
-    color: "#111",
-    fontWeight: 700,
-  },
-
-  pickLabel: {
-    fontSize: 12,
-    color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 8,
-    marginTop: 8,
-  },
-
-  pillWrap: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  pill: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fff",
-    color: "#111",
-    padding: "8px 10px",
-    borderRadius: 999,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  pillSelected: {
-    background: "#111",
-    color: "#fff",
-    border: "1px solid rgba(0,0,0,0.18)",
-  },
-
-  attachButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fafafa",
-    color: "#111",
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-
-  thumbWrap: {
-    position: "relative",
-    width: 160,
-    height: 100,
-    borderRadius: 14,
-    overflow: "hidden",
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#000",
-  },
-  thumbImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  },
-  thumbRemove: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 28,
-    height: 28,
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.35)",
-    background: "rgba(0,0,0,0.55)",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: 18,
-    lineHeight: "28px",
-    textAlign: "center",
-    fontWeight: 900,
-  },
-
-  uploadingText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#666",
-    fontWeight: 600,
-  },
-};

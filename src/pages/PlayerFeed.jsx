@@ -148,7 +148,7 @@ export default function PlayerFeed() {
     refreshInbox(storedPlayerId);
   }, [storedPlayerId, refreshInbox]);
 
-  // Realtime: when a message is inserted for this table, refresh inbox
+  // Realtime: when a message is inserted or updated for this table, refresh inbox
   useEffect(() => {
     if (!tableId || !storedPlayerId) return;
 
@@ -160,6 +160,24 @@ export default function PlayerFeed() {
         "postgres_changes",
         {
           event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `table_id=eq.${tableId}`,
+        },
+        (payload) => {
+          const nextStatus = payload?.new?.status;
+          if (nextStatus !== "sent") return;
+
+          setTimeout(() => {
+            if (!alive) return;
+            refreshInbox(storedPlayerId);
+          }, 150);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
           schema: "public",
           table: "messages",
           filter: `table_id=eq.${tableId}`,
