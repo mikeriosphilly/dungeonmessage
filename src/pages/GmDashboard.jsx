@@ -77,6 +77,7 @@ export default function GmDashboard() {
 
     setPlayers(data?.players || []);
   }, [gmSecret]);
+
   // When "send to everyone" is checked, clear specific selections
   useEffect(() => {
     if (sendToEveryone) setSelectedIds([]);
@@ -549,23 +550,27 @@ export default function GmDashboard() {
     }
   }
 
+  // Shareable player join link
+  const tableCode = table?.code || "";
+  const shareUrl = tableCode
+    ? `${window.location.origin}/join?code=${tableCode}`
+    : "";
+
   async function copyShareLink() {
     if (!shareUrl) return;
 
     let copiedOk = false;
 
     try {
-      // Modern clipboard API
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
         copiedOk = true;
       }
-    } catch (e) {
+    } catch {
       // fall through to legacy method
     }
 
     if (!copiedOk) {
-      // Fallback for older browsers / some mobile cases
       const ta = document.createElement("textarea");
       ta.value = shareUrl;
       ta.setAttribute("readonly", "");
@@ -606,12 +611,6 @@ export default function GmDashboard() {
 
   const imageUrlForUi = imagePreviewUrl;
 
-  // Shareable player join link
-  const tableCode = table?.code || "";
-  const shareUrl = tableCode
-    ? `${window.location.origin}/join?code=${tableCode}`
-    : "";
-
   // session expiry (24h after creation)
   const expiresAt = table?.created_at
     ? new Date(table.created_at).getTime() + 24 * 60 * 60 * 1000
@@ -622,150 +621,143 @@ export default function GmDashboard() {
     msLeft !== null && msLeft > 0 && msLeft <= 60 * 60 * 1000;
 
   return (
-    <div style={styles.wrap}>
-      <div style={styles.card}>
-        <GmHeader tableName={table?.name} tableCode={table?.code || ""} />
-        <div style={localStyles.shareRow}>
-          <button
-            type="button"
-            onClick={copyShareLink}
-            disabled={!shareUrl}
-            style={{
-              ...localStyles.shareBtn,
-              ...(shareUrl ? null : localStyles.shareBtnDisabled),
-            }}
-            title="Copy a join link to share with players"
-          >
-            Share
-          </button>
-
-          {copied && <div style={localStyles.copiedTag}>Copied!</div>}
-        </div>
-
-        {error && <p style={styles.error}>{error}</p>}
-
-        {showExpiryWarning && (
-          // TODO (final styles): design persistent session-expiry banner
-          // - visually distinct but non-alarming
-          // - mobile-friendly
-          // - consider countdown / progress indicator
-
-          <div style={localStyles.expiryBanner}>
-            <div style={localStyles.expiryTitle}>Session ending soon</div>
-            <div style={localStyles.expiryBody}>
-              This session will automatically end in about{" "}
-              {Math.ceil(msLeft / 60000)} minutes.
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          {/* Top header row: title + table code card */}
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-4xl font-extrabold tracking-tight text-black">
+                {table?.name || "Game Master Dashboard"}
+              </h1>
+              <p className="mt-2 text-sm font-medium text-gray-600">
+                Game Master Dashboard
+              </p>
             </div>
-          </div>
-        )}
 
-        <MessageComposer
-          players={players}
-          draft={draft}
-          setDraft={setDraft}
-          sending={sending}
-          sendDisabled={sendDisabled}
-          sendMessage={sendMessage}
-          sendToEveryone={sendToEveryone}
-          setSendToEveryone={setSendToEveryone}
-          selectedIds={selectedIds}
-          toggleRecipient={toggleRecipient}
-          imageUrl={imageUrlForUi}
-          onPickImage={onPickImage}
-          onRemoveImage={onRemoveImage}
-          imageUploading={imageUploading}
-          saveForLater={saveForLater}
-          saveDisabled={saveDisabled}
-          savingDraft={savingDraft}
-          editingDraftId={editingDraftId}
-          clearComposer={clearComposer}
-        />
+            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-gray-50 p-5">
+              <div className="text-sm font-semibold text-gray-700">
+                Table Code
+              </div>
 
-        {/* Drafts */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Drafts</h2>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="text-2xl font-extrabold tracking-wider text-purple-700">
+                  {table?.code || "-----"}
+                </div>
 
-          {draftItems.length === 0 ? (
-            <p style={styles.muted}>No drafts yet. Save something spooky.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 10 }}>
-              {draftItems.map((d) => (
-                <div key={d.id} style={localStyles.draftCard}>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => loadDraftIntoComposer(d)}
-                    style={localStyles.draftMainButton}
-                    title="Load this draft into the composer"
+                    onClick={copyShareLink}
+                    disabled={!shareUrl}
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    title="Copy a join link to share with players"
                   >
-                    <div style={localStyles.draftMeta}>
-                      {new Date(d.created_at).toLocaleString([], {
-                        month: "short",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                      {d.image_url ? "  •  📷" : ""}
-                    </div>
-                    <div style={localStyles.draftBody}>
-                      {(d.body || "").trim() || "(empty draft)"}
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => deleteDraft(d.id)}
-                    style={localStyles.draftDelete}
-                    title="Delete draft"
-                  >
-                    Delete
+                    Copy link
                   </button>
                 </div>
-              ))}
+              </div>
+
+              {copied && (
+                <div className="mt-3 inline-flex rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-gray-900">
+                  Copied!
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Legacy error and warning UI stays intact for now */}
+          {error && <p style={styles.error}>{error}</p>}
+
+          {showExpiryWarning && (
+            <div style={localStyles.expiryBanner}>
+              <div style={localStyles.expiryTitle}>Session ending soon</div>
+              <div style={localStyles.expiryBody}>
+                This session will automatically end in about{" "}
+                {Math.ceil(msLeft / 60000)} minutes.
+              </div>
             </div>
           )}
-        </div>
 
-        <PlayerGrid tableLoaded={!!table} players={players} error={error} />
-        <MessageLog items={logItems} />
-      </div>
+          <div className="mt-8 space-y-8">
+            <MessageComposer
+              players={players}
+              draft={draft}
+              setDraft={setDraft}
+              sending={sending}
+              sendDisabled={sendDisabled}
+              sendMessage={sendMessage}
+              sendToEveryone={sendToEveryone}
+              setSendToEveryone={setSendToEveryone}
+              selectedIds={selectedIds}
+              toggleRecipient={toggleRecipient}
+              imageUrl={imageUrlForUi}
+              onPickImage={onPickImage}
+              onRemoveImage={onRemoveImage}
+              imageUploading={imageUploading}
+              saveForLater={saveForLater}
+              saveDisabled={saveDisabled}
+              savingDraft={savingDraft}
+              editingDraftId={editingDraftId}
+              clearComposer={clearComposer}
+            />
+
+            {/* Drafts */}
+            <div style={styles.section}>
+              <h2 style={styles.sectionTitle}>Drafts</h2>
+
+              {draftItems.length === 0 ? (
+                <p style={styles.muted}>
+                  No drafts yet. Save something spooky.
+                </p>
+              ) : (
+                <div style={{ display: "grid", gap: 10 }}>
+                  {draftItems.map((d) => (
+                    <div key={d.id} style={localStyles.draftCard}>
+                      <button
+                        type="button"
+                        onClick={() => loadDraftIntoComposer(d)}
+                        style={localStyles.draftMainButton}
+                        title="Load this draft into the composer"
+                      >
+                        <div style={localStyles.draftMeta}>
+                          {new Date(d.created_at).toLocaleString([], {
+                            month: "short",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                          {d.image_url ? "  •  📷" : ""}
+                        </div>
+                        <div style={localStyles.draftBody}>
+                          {(d.body || "").trim() || "(empty draft)"}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteDraft(d.id)}
+                        style={localStyles.draftDelete}
+                        title="Delete draft"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <PlayerGrid tableLoaded={!!table} players={players} error={error} />
+            <MessageLog items={logItems} />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
 
 const localStyles = {
-  copiedTag: {
-    alignSelf: "center",
-    marginLeft: 10,
-    fontSize: 12,
-    fontWeight: 800,
-    color: "#111",
-    background: "rgba(0,0,0,0.06)",
-    borderRadius: 999,
-    padding: "6px 10px",
-    whiteSpace: "nowrap",
-  },
-
-  shareRow: {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  shareBtn: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fff",
-    color: "#111",
-    borderRadius: 12,
-    padding: "10px 12px",
-    cursor: "pointer",
-    fontWeight: 800,
-    whiteSpace: "nowrap",
-  },
-  shareBtnDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
-  },
-
   expiryBanner: {
     border: "1px solid rgba(0,0,0,0.12)",
     background: "#fff7ed",
@@ -782,6 +774,7 @@ const localStyles = {
     color: "#333",
     lineHeight: 1.35,
   },
+
   draftCard: {
     display: "grid",
     gridTemplateColumns: "1fr auto",

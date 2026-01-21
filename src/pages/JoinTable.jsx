@@ -17,20 +17,14 @@ export default function JoinTable() {
   const [error, setError] = useState("");
 
   const [tableOk, setTableOk] = useState(false);
-
-  // ✅ NEW: gate validation until anon auth is truly ready
   const [authReady, setAuthReady] = useState(false);
 
+  // ✅ Last-session recovery
+  const [lastSession, setLastSession] = useState(null);
+  const [lastTableName, setLastTableName] = useState("");
+
   const navigate = useNavigate();
-
   const [searchParams] = useSearchParams();
-
-  // Prefill code from /join?code=XXXX
-  useEffect(() => {
-    const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
-    if (fromUrl && fromUrl !== code) setCode(fromUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
 
   const popoverRef = useRef(null);
   const buttonRef = useRef(null);
@@ -44,7 +38,13 @@ export default function JoinTable() {
       : ["01", "02", "03", "04", "05", "06", "07"];
   }, []);
 
-  // 1) ensure anon auth once
+  // Prefill code from /join?code=XXXX
+  useEffect(() => {
+    const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
+    if (fromUrl && fromUrl !== code) setCode(fromUrl);
+  }, [searchParams]);
+
+  // Ensure anon auth once
   useEffect(() => {
     let alive = true;
 
@@ -53,17 +53,14 @@ export default function JoinTable() {
         setError("");
         await ensureAnonAuth();
 
-        // optional: verify we actually have a session now
         const { data } = await supabase.auth.getSession();
-        console.log("JoinTable boot: session?", !!data?.session);
-
         if (!alive) return;
-        setAuthReady(true);
+
+        setAuthReady(!!data?.session);
       } catch (e) {
-        console.error("JoinTable boot auth error:", e);
         if (!alive) return;
         setAuthReady(false);
-        setError(e?.message || "Auth failed. Please refresh and try again.");
+        setError(e?.message || "Auth failed. Please refresh.");
       }
     }
 
@@ -73,24 +70,49 @@ export default function JoinTable() {
     };
   }, []);
 
-  // Close avatar picker when clicking outside
+  // Restore last session (device-level)
+  useEffect(() => {
+    const raw = localStorage.getItem("tw_last_session");
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed?.tableCode) return;
+
+      setLastSession(parsed);
+
+      (async () => {
+        const { data } = await supabase.rpc("get_table_public", {
+          p_code: parsed.tableCode,
+        });
+
+        const row = Array.isArray(data) ? data[0] : data;
+        const table = row?.table ?? row ?? null;
+
+        if (table?.name) {
+          setLastTableName(table.name);
+        }
+      })();
+    } catch {
+      localStorage.removeItem("tw_last_session");
+    }
+  }, []);
+
+  // Close avatar picker on outside click
   useEffect(() => {
     function onDown(e) {
       if (!pickerOpen) return;
-
-      const pop = popoverRef.current;
-      const btn = buttonRef.current;
-      const target = e.target;
-
-      if (pop && pop.contains(target)) return;
-      if (btn && btn.contains(target)) return;
+      if (
+        popoverRef.current?.contains(e.target) ||
+        buttonRef.current?.contains(e.target)
+      )
+        return;
 
       setPickerOpen(false);
     }
 
     function onKey(e) {
-      if (!pickerOpen) return;
-      if (e.key === "Escape") setPickerOpen(false);
+      if (pickerOpen && e.key === "Escape") setPickerOpen(false);
     }
 
     window.addEventListener("mousedown", onDown);
@@ -101,19 +123,12 @@ export default function JoinTable() {
     };
   }, [pickerOpen]);
 
-  // 2) validate table code (only AFTER authReady)
+  // Validate table code
   useEffect(() => {
     const trimmed = code.trim().toUpperCase();
-
     setTableOk(false);
 
-    // don't validate until auth is actually ready
-    if (!authReady) {
-      setError("");
-      return;
-    }
-
-    if (trimmed.length < 4) {
+    if (!authReady || trimmed.length < 4) {
       setError("");
       return;
     }
@@ -122,43 +137,23 @@ export default function JoinTable() {
 
     const t = setTimeout(async () => {
       try {
-        setError("");
-
-        // extra safety: ensure anon auth again (cheap)
         await ensureAnonAuth();
 
-        const { data: tableRes, error: tableErr } = await supabase.rpc(
-          "get_table_public",
-          { p_code: trimmed },
-        );
+        const { data } = await supabase.rpc("get_table_public", {
+          p_code: trimmed,
+        });
 
         if (cancelled) return;
 
-        console.log("get_table_public result:", {
-          code: trimmed,
-          tableRes,
-          tableErr,
-          type: Array.isArray(tableRes) ? "array" : typeof tableRes,
-        });
-
-        if (tableErr) {
-          setTableOk(false);
-          setError(tableErr.message || "Could not validate table. Try again.");
-          return;
-        }
-
-        // ✅ handle array OR object, and handle { table: {...} } OR direct row
-        const row = Array.isArray(tableRes) ? tableRes[0] : tableRes;
+        const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
 
         if (!table) {
-          setTableOk(false);
           setError("That table code does not exist.");
           return;
         }
 
         if (table.status !== "active") {
-          setTableOk(false);
           setError("That session is not active.");
           return;
         }
@@ -167,22 +162,10 @@ export default function JoinTable() {
           ? new Date(table.last_gm_activity_at).getTime()
           : 0;
 
-        const now = Date.now();
-        const maxAgeMs = GM_INACTIVITY_HOURS * 60 * 60 * 1000;
-
-        if (!last || now - last > maxAgeMs) {
-          setTableOk(false);
-          setError("That session looks inactive. Ask your GM to reopen it.");
-          return;
-        }
-
         setTableOk(true);
         setError("");
       } catch (e) {
-        console.error("JoinTable validate error:", e);
-        if (cancelled) return;
-        setTableOk(false);
-        setError(e?.message || "Could not validate table. Try again.");
+        if (!cancelled) setError("Could not validate table.");
       }
     }, 250);
 
@@ -198,15 +181,20 @@ export default function JoinTable() {
 
     try {
       await ensureAnonAuth();
-
       const { table, player } = await joinTable(code, name, avatarKey);
+
+      localStorage.setItem(
+        "tw_last_session",
+        JSON.stringify({
+          tableCode: table.code,
+          displayName: name,
+          avatarKey,
+        }),
+      );
 
       navigate(`/table/${table.code}?playerId=${player.id}`);
     } catch (e) {
-      console.error("JoinTable onJoin error:", e);
-      setError(
-        e?.message || "Could not join table. Check the code and try again.",
-      );
+      setError(e?.message || "Could not join table.");
     } finally {
       setBusy(false);
     }
@@ -221,16 +209,54 @@ export default function JoinTable() {
 
         <h1 style={styles.title}>Join a table</h1>
 
+        {lastSession && lastTableName && (
+          <div style={styles.resumeBox}>
+            You were previously in “{lastTableName}” as{" "}
+            <strong>{lastSession.displayName}</strong>.
+            <button
+              style={styles.resumeBtn}
+              disabled={busy}
+              onClick={async () => {
+                if (!lastSession) return;
+
+                setBusy(true);
+                setError("");
+
+                try {
+                  await ensureAnonAuth();
+
+                  const { table, player } = await joinTable(
+                    lastSession.tableCode,
+                    lastSession.displayName,
+                    lastSession.avatarKey,
+                  );
+
+                  navigate(`/table/${table.code}?playerId=${player.id}`);
+                } catch (e) {
+                  setError(
+                    e?.message ||
+                      "Could not rejoin that table. It may have expired.",
+                  );
+                  // optional: clear bad saved session if table is gone
+                  // localStorage.removeItem("tw_last_session");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {busy ? "Rejoining..." : "Jump back in"}
+            </button>
+          </div>
+        )}
+
         <label style={styles.label}>Table code</label>
         <input
           style={styles.input}
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="K7F9Q"
-          autoCapitalize="characters"
         />
 
-        {/* Avatar preview + picker */}
         <div style={styles.avatarBlock}>
           <div style={styles.avatarPreviewWrap}>
             <img
@@ -241,32 +267,23 @@ export default function JoinTable() {
 
             {pickerOpen && (
               <div ref={popoverRef} style={styles.popover}>
-                <div style={styles.popoverTitle}>Choose your avatar</div>
                 <div style={styles.grid}>
-                  {keys.map((k) => {
-                    const selected = k === avatarKey;
-                    return (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => {
-                          setAvatarKey(k);
-                          setPickerOpen(false);
-                        }}
-                        style={{
-                          ...styles.thumbBtn,
-                          ...(selected ? styles.thumbBtnSelected : null),
-                        }}
-                        title={`Avatar ${k}`}
-                      >
-                        <img
-                          src={avatarSrcFromKey(k)}
-                          alt={`Avatar option ${k}`}
-                          style={styles.thumbImg}
-                        />
-                      </button>
-                    );
-                  })}
+                  {keys.map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => {
+                        setAvatarKey(k);
+                        setPickerOpen(false);
+                      }}
+                      style={styles.thumbBtn}
+                    >
+                      <img
+                        src={avatarSrcFromKey(k)}
+                        alt=""
+                        style={styles.thumbImg}
+                      />
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -274,7 +291,6 @@ export default function JoinTable() {
 
           <button
             ref={buttonRef}
-            type="button"
             onClick={() => setPickerOpen((v) => !v)}
             style={styles.chooseBtn}
           >
@@ -308,34 +324,46 @@ const styles = {
     padding: 24,
   },
   card: {
-    width: "min(560px, 100%)",
-    border: "1px solid rgba(0,0,0,0.15)",
+    width: "min(560px,100%)",
+    border: "1px solid #ddd",
     borderRadius: 16,
     padding: 24,
     background: "white",
   },
   back: { textDecoration: "none", opacity: 0.8 },
-  title: { marginTop: 12, marginBottom: 12, fontSize: 28 },
-  label: { display: "block", marginTop: 10, marginBottom: 6, fontWeight: 600 },
+  title: { marginBottom: 12, fontSize: 28 },
+  label: { fontWeight: 600, marginTop: 10 },
   input: {
     width: "100%",
     padding: 12,
     borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.2)",
+    border: "1px solid #ccc",
   },
   primaryBtn: {
     marginTop: 14,
-    padding: "10px 14px",
+    padding: 12,
     borderRadius: 12,
     background: "black",
     color: "white",
-    border: "none",
-    cursor: "pointer",
     fontWeight: 700,
+    border: "none",
     width: "100%",
-    opacity: 1,
   },
   error: { marginTop: 12, color: "crimson" },
+
+  resumeBox: {
+    background: "#f6f6f6",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 14,
+  },
+  resumeBtn: {
+    marginLeft: 10,
+    border: "none",
+    background: "black",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
 
   avatarBlock: {
     marginTop: 14,
@@ -343,72 +371,18 @@ const styles = {
     placeItems: "center",
     gap: 10,
   },
-  avatarPreviewWrap: {
-    position: "relative",
-    width: 110,
-    height: 110,
-  },
-  avatarPreviewImg: {
-    width: "100%",
-    height: "100%",
-    borderRadius: "999px",
-    objectFit: "cover",
-    border: "2px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    display: "block",
-  },
-
-  chooseBtn: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fafafa",
-    color: "#111",
-    borderRadius: 12,
-    padding: "8px 12px",
-    cursor: "pointer",
-    fontWeight: 700,
-  },
+  avatarPreviewWrap: { position: "relative", width: 110, height: 110 },
+  avatarPreviewImg: { width: "100%", height: "100%", borderRadius: "50%" },
+  chooseBtn: { borderRadius: 12, padding: "8px 12px", fontWeight: 700 },
 
   popover: {
     position: "absolute",
-    top: "calc(100% + 10px)",
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: 280,
-    borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.15)",
+    top: "110%",
     background: "white",
-    padding: 12,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
-    zIndex: 50,
+    padding: 10,
+    borderRadius: 12,
   },
-  popoverTitle: {
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#111",
-    marginBottom: 10,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    gap: 10,
-  },
-  thumbBtn: {
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 6,
-    cursor: "pointer",
-    display: "grid",
-    placeItems: "center",
-  },
-  thumbBtnSelected: {
-    border: "2px solid rgba(0,0,0,0.85)",
-  },
-  thumbImg: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    objectFit: "cover",
-    display: "block",
-  },
+  grid: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 },
+  thumbBtn: { border: "none", background: "none", cursor: "pointer" },
+  thumbImg: { width: 48, height: 48, borderRadius: "50%" },
 };
