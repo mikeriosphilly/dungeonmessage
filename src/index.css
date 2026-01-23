@@ -9,6 +9,24 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Theme tokens */
+  --tw-bg: #171121;
+  --tw-header: #0d0913;
+
+  --tw-text: #ffffff;
+  --tw-text-muted: #9a99b8;
+
+  --tw-accent: #7042f9;
+  --tw-accent-2: #c20303;
+
+  --tw-card-a: #27203e;
+  --tw-card-b: #1b152d;
+
+  --tw-border: rgba(255, 255, 255, 0.1);
+  --tw-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  --tw-font-heading: "Girassol", serif;
+  --tw-font-message: "IM Fell English SC", serif;
 }
 
 /* Critical: do not center the entire app with flex.
@@ -32,6 +50,8 @@ body {
 body {
   margin: 0;
   min-width: 320px;
+  background: var(--tw-bg);
+  color: var(--tw-text);
 }
 
 /* Optional: sensible default font, still compatible with Tailwind */
@@ -59,4 +79,44 @@ input,
 textarea,
 select {
   font-size: 16px;
+}
+
+/* Reusable UI primitives */
+.tw-card {
+  background: linear-gradient(90deg, var(--tw-card-a), var(--tw-card-b));
+  border: 1px solid var(--tw-border);
+  box-shadow: var(--tw-shadow);
+  border-radius: 18px;
+}
+
+.tw-card-pad {
+  padding: 20px;
+}
+
+/* Arcane purple heading effect */
+.tw-arcane {
+  color: #e8e6ff;
+  text-shadow:
+    0 0 6px rgba(112, 66, 249, 0.55),
+    0 0 18px rgba(112, 66, 249, 0.35),
+    0 6px 22px rgba(0, 0, 0, 0.6);
+}
+
+.tw-app-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 64px; /* or whatever your header height is */
+  padding: 0 16px;
+}
+
+.tw-logo-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tw-logo {
+  height: 32px; /* adjust to taste */
+  width: auto;
 }

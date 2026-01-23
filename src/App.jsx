@@ -6,6 +6,7 @@ import GmDashboard from "./pages/GmDashboard";
 import PlayerFeed from "./pages/PlayerFeed";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabaseClient";
+import AppHeader from "./components/AppHeader";
 
 function ensureAnonAuth() {
   return supabase.auth.getSession().then(({ data }) => {
@@ -22,13 +23,16 @@ export default function App() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/start" element={<StartTable />} />
-      <Route path="/join" element={<JoinTable />} />
-      <Route path="/gm/:gmSecret" element={<GmDashboard />} />
-      <Route path="/table/:code" element={<PlayerFeed />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <div className="min-h-screen">
+      <AppHeader />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/start" element={<StartTable />} />
+        <Route path="/join" element={<JoinTable />} />
+        <Route path="/gm/:gmSecret" element={<GmDashboard />} />
+        <Route path="/table/:code" element={<PlayerFeed />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   );
 }

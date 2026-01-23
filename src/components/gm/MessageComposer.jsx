@@ -1,3 +1,5 @@
+import { ImagePlus } from "lucide-react";
+
 export default function MessageComposer({
   players,
   draft,
@@ -27,11 +29,8 @@ export default function MessageComposer({
 }) {
   return (
     <div className="mt-4">
-      {/* Section label (matches your screenshot vibe) */}
-      <div className="text-sm font-medium text-gray-700">Send message</div>
-
       {/* Send to everyone */}
-      <label className="mt-3 flex select-none items-center gap-3 text-sm font-semibold text-gray-900">
+      <label className="mt-3 flex select-none items-center gap-3 text-sm font-semibold text-white">
         <input
           type="checkbox"
           checked={sendToEveryone}
@@ -44,7 +43,10 @@ export default function MessageComposer({
       {/* Recipient picker */}
       {!sendToEveryone && (
         <div className="mt-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: "var(--tw-text-muted)" }}
+          >
             Pick recipients
           </div>
 
@@ -59,12 +61,21 @@ export default function MessageComposer({
                     key={p.id}
                     type="button"
                     onClick={() => toggleRecipient(p.id)}
-                    className={[
-                      "rounded-full border px-3 py-2 text-sm font-semibold transition",
+                    className="cursor-pointer rounded-full border px-3 py-2 text-sm font-semibold transition"
+                    style={
                       selected
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50",
-                    ].join(" ")}
+                        ? {
+                            background: "var(--tw-accent)",
+                            color: "#fff",
+                            borderColor: "transparent",
+                            boxShadow: "var(--tw-shadow)",
+                          }
+                        : {
+                            background: "rgba(255,255,255,0.04)",
+                            color: "var(--tw-text)",
+                            borderColor: "var(--tw-border)",
+                          }
+                    }
                   >
                     {p.display_name}
                   </button>
@@ -77,14 +88,23 @@ export default function MessageComposer({
 
       {/* Message */}
       <div className="mt-4">
-        <div className="text-sm font-medium text-gray-700">Message</div>
+        <div
+          className="text-sm font-semibold"
+          style={{ color: "var(--tw-text-muted)" }}
+        >
+          Message
+        </div>
 
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Type your secret message here..."
           rows={6}
-          className="mt-2 w-full resize-y rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-gray-300 focus:bg-white focus:ring-0"
+          className="mt-2 w-full resize-y rounded-2xl border px-4 py-3 text-sm text-white outline-none placeholder:text-[var(--tw-text-muted)] focus:ring-0"
+          style={{
+            borderColor: "var(--tw-border)",
+            background: "rgba(255,255,255,0.04)",
+          }}
         />
       </div>
 
@@ -122,8 +142,16 @@ export default function MessageComposer({
       {/* Actions row: Attach, Save, Send */}
       <div className="mt-4 flex flex-col gap-3 md:flex-row">
         {/* Attach image */}
-        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 md:w-1/3">
-          <span aria-hidden="true">🖼️</span>
+        <label
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition hover:shadow-lg hover:-translate-y-[1px] md:w-1/3"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            color: "var(--tw-text)",
+            borderColor: "var(--tw-border)",
+          }}
+        >
+          <ImagePlus size={18} aria-hidden="true" />
+
           <span>Attach Image</span>
           <input
             type="file"
@@ -139,7 +167,12 @@ export default function MessageComposer({
           type="button"
           onClick={saveForLater}
           disabled={saveDisabled}
-          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          className="w-full cursor-pointer rounded-2xl border px-4 py-3 text-sm font-semibold transition hover:shadow-lg hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            color: "var(--tw-text)",
+            borderColor: "var(--tw-border)",
+          }}
           title="Save as draft"
         >
           {savingDraft ? "Saving..." : "Save as Draft"}
@@ -150,7 +183,10 @@ export default function MessageComposer({
           type="button"
           onClick={sendMessage}
           disabled={sendDisabled}
-          className="w-full rounded-2xl bg-gray-950 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          className="w-full cursor-pointer rounded-2xl px-4 py-3 text-sm font-semibold text-white transition hover:shadow-lg hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
+          style={{
+            background: "var(--tw-accent)",
+          }}
           title="Send message"
         >
           {sending ? "Sending..." : "Send Message"}

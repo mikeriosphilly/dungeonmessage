@@ -1,10 +1,6 @@
 export default function MessageLog({ items }) {
   return (
     <div style={{ marginTop: 18 }}>
-      <h2 style={{ margin: "0 0 10px 0", fontSize: 18, color: "#111" }}>
-        Message log
-      </h2>
-
       {!items?.length ? (
         <p style={{ margin: 0, color: "#666" }}>No messages yet.</p>
       ) : (
@@ -27,17 +23,20 @@ export default function MessageLog({ items }) {
               recipientNames.length === 0
                 ? "Recipients: (unknown)"
                 : recipientNames.length === 1
-                ? `To: ${recipientNames[0]}`
-                : `To: ${recipientNames.join(", ")}`;
+                  ? `To: ${recipientNames[0]}`
+                  : `To: ${recipientNames.join(", ")}`;
 
             return (
               <div
                 key={m.id}
                 style={{
                   padding: 14,
-                  borderRadius: 14,
                   border: "1px solid rgba(0,0,0,0.12)",
-                  background: "#fff",
+                  backgroundColor: "rgba(255,255,255,0.92)",
+                  backgroundImage: "url(/pattern-paper.jpg)",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
                 }}
               >
                 <div
@@ -47,7 +46,7 @@ export default function MessageLog({ items }) {
                     gap: 12,
                     marginBottom: 8,
                     fontSize: 12,
-                    color: "#666",
+                    color: "rgba(0,0,0,0.65)",
                   }}
                 >
                   <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -88,7 +87,9 @@ export default function MessageLog({ items }) {
 
                 <div
                   style={{
-                    color: "#111",
+                    fontFamily: "var(--tw-font-message)",
+                    fontSize: "1.05rem",
+                    color: "rgba(0,0,0,0.85)",
                     whiteSpace: "pre-wrap",
                     lineHeight: 1.45,
                   }}

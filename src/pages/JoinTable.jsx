@@ -162,6 +162,10 @@ export default function JoinTable() {
           ? new Date(table.last_gm_activity_at).getTime()
           : 0;
 
+        // keeping the constant in case you use it later
+        void last;
+        void GM_INACTIVITY_HOURS;
+
         setTableOk(true);
         setError("");
       } catch (e) {
@@ -200,6 +204,8 @@ export default function JoinTable() {
     }
   }
 
+  const [hovered, setHovered] = useState(null);
+
   return (
     <div style={styles.wrap}>
       <div style={styles.card}>
@@ -211,11 +217,19 @@ export default function JoinTable() {
 
         {lastSession && lastTableName && (
           <div style={styles.resumeBox}>
-            You were previously in “{lastTableName}” as{" "}
-            <strong>{lastSession.displayName}</strong>.
+            <div style={{ flex: 1, minWidth: 0 }}>
+              You were previously in “{lastTableName}” as{" "}
+              <strong>{lastSession.displayName}</strong>.
+            </div>
             <button
-              style={styles.resumeBtn}
+              style={{
+                ...styles.resumeBtn,
+                ...(hovered === "resume" ? styles.primaryBtnHover : {}),
+                ...(busy ? styles.btnDisabled : {}),
+              }}
               disabled={busy}
+              onMouseEnter={() => setHovered("resume")}
+              onMouseLeave={() => setHovered(null)}
               onClick={async () => {
                 if (!lastSession) return;
 
@@ -237,8 +251,6 @@ export default function JoinTable() {
                     e?.message ||
                       "Could not rejoin that table. It may have expired.",
                   );
-                  // optional: clear bad saved session if table is gone
-                  // localStorage.removeItem("tw_last_session");
                 } finally {
                   setBusy(false);
                 }
@@ -251,7 +263,12 @@ export default function JoinTable() {
 
         <label style={styles.label}>Table code</label>
         <input
-          style={styles.input}
+          style={{
+            ...styles.input,
+            ...(code.trim().length >= 4 && !tableOk && error
+              ? styles.inputError
+              : {}),
+          }}
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="K7F9Q"
@@ -259,11 +276,18 @@ export default function JoinTable() {
 
         <div style={styles.avatarBlock}>
           <div style={styles.avatarPreviewWrap}>
-            <img
-              src={avatarSrcFromKey(avatarKey)}
-              alt="Your avatar"
-              style={styles.avatarPreviewImg}
-            />
+            <button
+              type="button"
+              onClick={() => setPickerOpen((v) => !v)}
+              style={styles.avatarPreviewBtn}
+              aria-label="Open avatar picker"
+            >
+              <img
+                src={avatarSrcFromKey(avatarKey)}
+                alt="Your avatar"
+                style={styles.avatarPreviewImg}
+              />
+            </button>
 
             {pickerOpen && (
               <div ref={popoverRef} style={styles.popover}>
@@ -271,11 +295,15 @@ export default function JoinTable() {
                   {keys.map((k) => (
                     <button
                       key={k}
+                      type="button"
                       onClick={() => {
                         setAvatarKey(k);
                         setPickerOpen(false);
                       }}
-                      style={styles.thumbBtn}
+                      style={{
+                        ...styles.thumbBtn,
+                        ...(k === avatarKey ? styles.thumbBtnSelected : {}),
+                      }}
                     >
                       <img
                         src={avatarSrcFromKey(k)}
@@ -291,8 +319,14 @@ export default function JoinTable() {
 
           <button
             ref={buttonRef}
+            type="button"
             onClick={() => setPickerOpen((v) => !v)}
-            style={styles.chooseBtn}
+            style={{
+              ...styles.chooseBtn,
+              ...(hovered === "choose" ? styles.ghostBtnHover : {}),
+            }}
+            onMouseEnter={() => setHovered("choose")}
+            onMouseLeave={() => setHovered(null)}
           >
             Change avatar
           </button>
@@ -306,7 +340,17 @@ export default function JoinTable() {
           placeholder="Your name"
         />
 
-        <button style={styles.primaryBtn} disabled={!canJoin} onClick={onJoin}>
+        <button
+          style={{
+            ...styles.primaryBtn,
+            ...(hovered === "join" ? styles.primaryBtnHover : {}),
+            ...(!canJoin ? styles.btnDisabled : {}),
+          }}
+          disabled={!canJoin}
+          onMouseEnter={() => setHovered("join")}
+          onMouseLeave={() => setHovered(null)}
+          onClick={onJoin}
+        >
           {busy ? "Joining..." : "Join table"}
         </button>
 
@@ -322,67 +366,208 @@ const styles = {
     display: "grid",
     placeItems: "center",
     padding: 24,
+    background: "var(--tw-bg)",
+    color: "var(--tw-text)",
   },
+
   card: {
     width: "min(560px,100%)",
-    border: "1px solid #ddd",
-    borderRadius: 16,
-    padding: 24,
-    background: "white",
+    borderRadius: 22,
+    padding: 26,
+    background: "linear-gradient(90deg, var(--tw-card-a), var(--tw-card-b))",
+    border: "1px solid var(--tw-border)",
+    boxShadow: "var(--tw-shadow)",
   },
-  back: { textDecoration: "none", opacity: 0.8 },
-  title: { marginBottom: 12, fontSize: 28 },
-  label: { fontWeight: 600, marginTop: 10 },
+
+  back: {
+    textDecoration: "none",
+    color: "var(--tw-text-muted)",
+    display: "inline-block",
+    marginBottom: 10,
+  },
+
+  title: {
+    marginTop: 2,
+    marginBottom: 14,
+    fontSize: 44,
+    fontFamily: "var(--tw-font-heading)",
+    color: "var(--tw-text)",
+    letterSpacing: "0.01em",
+  },
+
+  label: {
+    display: "block",
+    marginTop: 12,
+    marginBottom: 8,
+    fontWeight: 800,
+    color: "var(--tw-text)",
+  },
+
   input: {
     width: "100%",
-    padding: 12,
-    borderRadius: 12,
-    border: "1px solid #ccc",
+    padding: "12px 14px",
+    borderRadius: 16,
+    border: "1px solid var(--tw-border)",
+    background: "rgba(255,255,255,0.04)",
+    color: "var(--tw-text)",
+    outline: "none",
+    fontSize: 16,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
   },
+
+  inputError: {
+    border: "1px solid rgba(194,3,3,0.8)",
+    boxShadow: "0 0 0 3px rgba(194,3,3,0.18)",
+  },
+
   primaryBtn: {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 12,
-    background: "black",
-    color: "white",
-    fontWeight: 700,
+    marginTop: 16,
+    padding: "14px 16px",
+    borderRadius: 16,
+    background:
+      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
+    color: "var(--tw-button-text)",
+    fontWeight: 900,
     border: "none",
     width: "100%",
+    cursor: "pointer",
+    letterSpacing: "0.02em",
+    boxShadow: "var(--tw-shadow)",
+    transition:
+      "transform 120ms ease, filter 120ms ease, box-shadow 120ms ease",
   },
-  error: { marginTop: 12, color: "crimson" },
+
+  primaryBtnHover: {
+    transform: "translateY(-1px)",
+    filter: "brightness(1.08)",
+    boxShadow: "0 12px 36px rgba(0,0,0,0.55)",
+  },
+
+  btnDisabled: {
+    opacity: 0.55,
+    cursor: "not-allowed",
+    transform: "none",
+    filter: "none",
+  },
+
+  error: {
+    marginTop: 14,
+    color: "var(--tw-accent-2)",
+    fontWeight: 700,
+  },
 
   resumeBox: {
-    background: "#f6f6f6",
-    padding: 12,
-    borderRadius: 12,
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: 16,
     marginBottom: 14,
+    border: "1px solid var(--tw-border)",
+    background: "rgba(255,255,255,0.04)",
+    color: "var(--tw-text-muted)",
   },
+
   resumeBtn: {
-    marginLeft: 10,
     border: "none",
-    background: "black",
-    fontWeight: 700,
+    padding: "10px 12px",
+    borderRadius: 14,
+    background:
+      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
+    color: "var(--tw-button-text)",
+    fontWeight: 900,
     cursor: "pointer",
+    whiteSpace: "nowrap",
+    boxShadow: "var(--tw-shadow)",
+    transition:
+      "transform 120ms ease, filter 120ms ease, box-shadow 120ms ease",
   },
 
   avatarBlock: {
-    marginTop: 14,
+    marginTop: 18,
     display: "grid",
     placeItems: "center",
     gap: 10,
   },
-  avatarPreviewWrap: { position: "relative", width: 110, height: 110 },
-  avatarPreviewImg: { width: "100%", height: "100%", borderRadius: "50%" },
-  chooseBtn: { borderRadius: 12, padding: "8px 12px", fontWeight: 700 },
+
+  avatarPreviewWrap: { position: "relative", width: 122, height: 122 },
+
+  avatarPreviewBtn: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    border: "1px solid var(--tw-border)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 6,
+    cursor: "pointer",
+    boxShadow: "var(--tw-shadow)",
+  },
+
+  avatarPreviewImg: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    display: "block",
+    objectFit: "cover",
+  },
+
+  chooseBtn: {
+    borderRadius: 14,
+    padding: "10px 12px",
+    fontWeight: 900,
+    cursor: "pointer",
+    border: "1px solid var(--tw-border)",
+    background: "rgba(255,255,255,0.04)",
+    color: "var(--tw-text)",
+    transition: "transform 120ms ease, background 120ms ease",
+  },
+
+  ghostBtnHover: {
+    transform: "translateY(-1px)",
+    background: "rgba(255,255,255,0.07)",
+  },
 
   popover: {
-    position: "absolute",
-    top: "110%",
-    background: "white",
-    padding: 10,
-    borderRadius: 12,
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 9999,
+    width: "min(520px, calc(100vw - 32px))",
+    maxWidth: 520,
+    background: "linear-gradient(90deg, var(--tw-card-a), var(--tw-card-b))",
+    border: "1px solid var(--tw-border)",
+    boxShadow: "0 18px 44px rgba(0,0,0,0.75)",
+    padding: 14,
+    borderRadius: 22,
   },
-  grid: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 },
-  thumbBtn: { border: "none", background: "none", cursor: "pointer" },
-  thumbImg: { width: 48, height: 48, borderRadius: "50%" },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4,1fr)",
+    gap: 10,
+  },
+
+  thumbBtn: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.02)",
+    cursor: "pointer",
+    padding: 6,
+    borderRadius: 16,
+    transition: "transform 120ms ease, background 120ms ease",
+  },
+
+  thumbBtnSelected: {
+    border: "1px solid rgba(112,66,249,0.9)",
+    background: "rgba(112,66,249,0.18)",
+    transform: "translateY(-1px)",
+  },
+
+  thumbImg: {
+    width: 52,
+    height: 52,
+    borderRadius: "50%",
+    display: "block",
+    objectFit: "cover",
+  },
 };

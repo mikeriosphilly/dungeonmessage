@@ -6,6 +6,7 @@ import PlayerGrid from "../components/gm/PlayerGrid";
 import MessageLog from "../components/gm/MessageLog";
 import MessageComposer from "../components/gm/MessageComposer";
 import { avatarSrcFromKey } from "../lib/avatars";
+import { Send, Trash2 } from "lucide-react";
 
 const BUCKET = "message-images";
 
@@ -731,27 +732,34 @@ export default function GmDashboard() {
   }, [players]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: "var(--tw-bg)" }}>
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Top header row */}
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-950">
-              {table?.name || "Game Master Dashboard"}
+            <h1
+              className="tw-arcane text-5xl font-extrabold tracking-wide"
+              style={{
+                fontFamily: "var(--tw-font-heading)",
+                textShadow: "0 2px 10px rgba(0,0,0,0.4)",
+              }}
+            >
+              {table?.name}
             </h1>
+
             <p className="mt-2 text-sm font-medium text-gray-600">
               Game Master Dashboard
             </p>
           </div>
 
           {/* Table code card */}
-          <div className="w-full max-w-sm rounded-2xl border border-purple-200 bg-purple-50/60 p-5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+          <div className="w-full max-w-sm tw-card tw-card-pad">
+            <div className="text-2xl font-extrabold tracking-wider text-[var(--tw-accent)]">
               Table Code
             </div>
 
             <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="text-2xl font-extrabold tracking-wider text-purple-700">
+              <div className="text-2xl font-extrabold tracking-wider text-[var(--tw-accent)]">
                 {table?.code || "-----"}
               </div>
 
@@ -808,9 +816,12 @@ export default function GmDashboard() {
 
         <div className="mt-10 space-y-6">
           {/* Players strip */}
-          <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <div className="tw-card tw-card-pad">
             <div className="flex flex-wrap items-center gap-4">
-              <div className="text-sm font-semibold text-gray-700">
+              <div
+                className="text-sm font-semibold"
+                style={{ color: "var(--tw-text-muted)" }}
+              >
                 Players:
               </div>
 
@@ -836,7 +847,14 @@ export default function GmDashboard() {
                 ))}
               </div>
 
-              <div className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+              <div
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "var(--tw-text-muted)",
+                  border: "1px solid var(--tw-border)",
+                }}
+              >
                 {playerCount} {playerCount === 1 ? "player" : "players"}
               </div>
             </div>
@@ -853,8 +871,8 @@ export default function GmDashboard() {
           </div>
 
           {/* Send a Message card (MessageComposer lives inside) */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-2xl font-extrabold text-gray-950">
+          <div className="tw-card tw-card-pad">
+            <h2 className="text-2xl font-extrabold text-white">
               Send a Message
             </h2>
 
@@ -884,25 +902,31 @@ export default function GmDashboard() {
           </div>
 
           {/* Drafted Messages accordion bar */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="tw-card tw-card-pad">
             <button
               type="button"
               onClick={() => setDraftsOpen((v) => !v)}
               className="flex w-full items-center justify-between gap-4 px-5 py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="text-base font-extrabold text-gray-950">
+                <div className="text-base font-extrabold text-white">
                   Drafted Messages
                 </div>
-                <div className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-semibold text-gray-700">
+                <div
+                  className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-semibold"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    color: "var(--tw-text-muted)",
+                    border: "1px solid var(--tw-border)",
+                  }}
+                >
                   {draftItems.length}
                 </div>
               </div>
 
               <div
-                className={`text-gray-600 transition ${
-                  draftsOpen ? "rotate-180" : ""
-                }`}
+                className={`transition ${draftsOpen ? "rotate-180" : ""}`}
+                style={{ color: "var(--tw-text-muted)" }}
                 aria-hidden="true"
               >
                 <svg
@@ -919,25 +943,38 @@ export default function GmDashboard() {
             </button>
 
             {draftsOpen && (
-              <div className="border-t border-gray-200 px-5 py-4">
+              <div
+                className="border-t px-5 py-4"
+                style={{ borderColor: "var(--tw-border)" }}
+              >
                 {draftItems.length === 0 ? (
-                  <p className="text-sm text-gray-600">
-                    No drafts yet. Save something spooky.
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--tw-text-muted)" }}
+                  >
+                    No drafts yet.
                   </p>
                 ) : (
                   <div className="grid gap-3">
                     {draftItems.map((d) => (
                       <div
                         key={d.id}
-                        className="grid grid-cols-[1fr_auto] items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4"
+                        className="grid cursor-pointer grid-cols-[1fr_auto] items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-[1px] hover:shadow-lg"
+                        style={{
+                          borderColor: "var(--tw-border)",
+                          background: "rgba(255,255,255,0.03)",
+                        }}
                       >
                         <button
                           type="button"
                           onClick={() => loadDraftIntoComposer(d)}
-                          className="text-left"
+                          className="cursor-pointer text-left"
                           title="Load this draft into the composer"
                         >
-                          <div className="text-xs font-semibold text-gray-500">
+                          <div
+                            className="text-xs font-semibold"
+                            style={{ color: "var(--tw-text-muted)" }}
+                          >
                             To:{" "}
                             {d.draft_send_to_everyone
                               ? "Everyone"
@@ -955,34 +992,40 @@ export default function GmDashboard() {
                             {d.image_url ? "  •  📷" : ""}
                           </div>
 
-                          <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-gray-900">
+                          <div
+                            className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm"
+                            style={{ color: "var(--tw-text)" }}
+                          >
                             {(d.body || "").trim() || "(empty draft)"}
                           </div>
                         </button>
 
                         <div className="flex items-center justify-end gap-2">
+                          {/* Send button */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               sendDraft(d);
                             }}
-                            className="rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-black"
+                            className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl transition hover:shadow-lg hover:-translate-y-[1px]"
+                            style={{ background: "var(--tw-accent)" }}
                             title="Send this draft"
                           >
-                            Send
+                            <Send size={16} color="#fff" />
                           </button>
-
+                          {/* Delete button */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteDraft(d.id);
                             }}
-                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+                            className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl transition hover:shadow-lg hover:-translate-y-[1px]"
+                            style={{ background: "var(--tw-accent-2)" }}
                             title="Delete draft"
                           >
-                            Delete
+                            <Trash2 size={16} color="#fff" />
                           </button>
                         </div>
                       </div>
@@ -994,10 +1037,8 @@ export default function GmDashboard() {
           </div>
 
           {/* Message Log card */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-extrabold text-gray-950">
-              Message Log
-            </h2>
+          <div className="tw-card tw-card-pad">
+            <h2 className="text-2xl font-extrabold text-white">Message Log</h2>
             <div className="mt-4">
               <MessageLog items={logItems} />
             </div>
