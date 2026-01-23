@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey } from "../lib/avatars";
@@ -27,6 +27,8 @@ export default function PlayerFeed() {
   const [loadingPlayer, setLoadingPlayer] = useState(true);
 
   const tableId = table?.id || null;
+
+  const prevMessageIds = useRef(new Set());
 
   // Persist playerId per table
   useEffect(() => {
@@ -148,6 +150,11 @@ export default function PlayerFeed() {
     refreshInbox(storedPlayerId);
   }, [storedPlayerId, refreshInbox]);
 
+  // Track previously seen message IDs (for enter animations)
+  useEffect(() => {
+    prevMessageIds.current = new Set(messages.map((m) => m.id));
+  }, [messages]);
+
   // Realtime: when a message is inserted or updated for this table, refresh inbox
   useEffect(() => {
     if (!tableId || !storedPlayerId) return;
@@ -245,35 +252,43 @@ export default function PlayerFeed() {
         {messages.length === 0 ? (
           <p style={styles.muted}>Waiting for messages...</p>
         ) : (
-          messages.map((m) => (
-            <div key={m.id} style={styles.msgCard}>
-              <div style={styles.msgMeta}>
-                {new Date(m.sent_at || m.created_at).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+          messages.map((m) => {
+            const isNew = !prevMessageIds.current.has(m.id);
+
+            return (
+              <div
+                key={m.id}
+                className={isNew ? "tw-msg-enter" : ""}
+                style={styles.msgCard}
+              >
+                <div style={styles.msgMeta}>
+                  {new Date(m.sent_at || m.created_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+
+                {m.image_url && (
+                  <img
+                    src={m.image_url}
+                    alt="GM sent image"
+                    style={styles.msgImage}
+                    loading="lazy"
+                  />
+                )}
+
+                {m.body ? (
+                  <div style={styles.msgBody}>{m.body}</div>
+                ) : (
+                  !m.image_url && (
+                    <div style={{ color: "rgba(0,0,0,0.65)" }}>
+                      (No message text)
+                    </div>
+                  )
+                )}
               </div>
-
-              {m.image_url && (
-                <img
-                  src={m.image_url}
-                  alt="GM sent image"
-                  style={styles.msgImage}
-                  loading="lazy"
-                />
-              )}
-
-              {m.body ? (
-                <div style={styles.msgBody}>{m.body}</div>
-              ) : (
-                !m.image_url && (
-                  <div style={{ color: "rgba(0,0,0,0.65)" }}>
-                    (No message text)
-                  </div>
-                )
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
