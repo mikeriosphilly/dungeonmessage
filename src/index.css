@@ -20,6 +20,15 @@ body,
   min-height: 100%;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -43,4 +52,11 @@ body {
 a {
   color: inherit;
   text-decoration: inherit;
+}
+
+/* Prevent iOS focus-zoom */
+input,
+textarea,
+select {
+  font-size: 16px;
 }
