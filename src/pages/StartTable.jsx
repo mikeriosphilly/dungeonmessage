@@ -13,12 +13,12 @@ export default function StartTable() {
   async function onStart() {
     setBusy(true);
     setError("");
+
     try {
       const table = await startTable(name.trim());
-      console.log("startTable returned:", table);
       navigate(`/gm/${table.gm_secret}`);
     } catch (e) {
-      setError(e.message || "Something went wrong starting the table.");
+      setError(e?.message || "Something went wrong starting the table.");
     } finally {
       setBusy(false);
     }
@@ -30,7 +30,13 @@ export default function StartTable() {
         <Link to="/" style={styles.back}>
           ← Back
         </Link>
+
         <h1 style={styles.title}>Start a table</h1>
+
+        <p style={styles.subtitle}>
+          Create a new session and receive a secret link for the Game Master.
+          Your players will join with a short code.
+        </p>
 
         <label style={styles.label}>Table name</label>
         <input
@@ -42,17 +48,15 @@ export default function StartTable() {
         />
 
         <button
-          style={styles.primaryBtn}
+          style={{
+            ...styles.primaryBtn,
+            ...(canStart ? {} : styles.primaryBtnDisabled),
+          }}
           disabled={!canStart}
           onClick={onStart}
         >
           {busy ? "Starting..." : "Start session"}
         </button>
-
-        <p style={styles.helper}>
-          Give your table a name worthy of legend. The realm will forge a short
-          code for your players.
-        </p>
 
         {error && <p style={styles.error}>{error}</p>}
       </div>
@@ -66,31 +70,84 @@ const styles = {
     display: "grid",
     placeItems: "center",
     padding: 24,
+    background: "var(--tw-bg)",
+    color: "var(--tw-text)",
   },
+
   card: {
     width: "min(560px, 100%)",
-    border: "1px solid rgba(0,0,0,0.15)",
-    borderRadius: 16,
-    padding: 24,
-    background: "white",
+    padding: 32,
+    borderRadius: 18,
+    background: "transparent",
+    textAlign: "center",
   },
-  back: { textDecoration: "none", opacity: 0.8 },
-  title: { marginTop: 12, marginBottom: 12, fontSize: 28 },
-  label: { display: "block", marginTop: 8, marginBottom: 6, fontWeight: 600 },
+
+  back: {
+    display: "inline-block",
+    marginBottom: 14,
+    textDecoration: "none",
+    color: "var(--tw-text-muted)",
+  },
+
+  title: {
+    margin: 0,
+    marginBottom: 10,
+    fontSize: 42,
+    fontFamily: "var(--tw-font-heading)",
+    color: "var(--tw-text)",
+  },
+
+  subtitle: {
+    marginBottom: 22,
+    lineHeight: 1.55,
+    fontSize: "1.05rem",
+    color: "var(--tw-text-muted)",
+  },
+
+  label: {
+    display: "block",
+    textAlign: "left",
+    marginBottom: 6,
+    fontWeight: 700,
+    color: "var(--tw-text)",
+  },
+
   input: {
     width: "100%",
-    padding: 12,
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.2)",
+    padding: "14px 16px",
+    borderRadius: 14,
+    border: "1px solid var(--tw-border)",
+    background: "rgba(255,255,255,0.05)",
+    color: "var(--tw-text)",
+    fontSize: "1rem",
+    marginBottom: 18,
+    outline: "none",
   },
+
   primaryBtn: {
-    marginTop: 14,
-    padding: "10px 14px",
-    borderRadius: 12,
-    background: "black",
-    color: "white",
+    width: "100%",
+    padding: "14px 18px",
+    borderRadius: 16,
+    background:
+      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
+    color: "var(--tw-button-text)",
+    fontWeight: 800,
+    fontSize: "1.05rem",
     border: "none",
+    cursor: "pointer",
+    boxShadow: "var(--tw-shadow)",
+    transition:
+      "transform 140ms ease, box-shadow 140ms ease, filter 140ms ease",
   },
-  helper: { marginTop: 14, lineHeight: 1.5, opacity: 0.8 },
-  error: { marginTop: 12, color: "crimson" },
+
+  primaryBtnDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+    filter: "grayscale(0.4)",
+  },
+
+  error: {
+    marginTop: 14,
+    color: "var(--tw-accent-2)",
+  },
 };
