@@ -150,6 +150,28 @@ export default function PlayerFeed() {
     refreshInbox(storedPlayerId);
   }, [storedPlayerId, refreshInbox]);
 
+  // Refresh inbox when user returns to the tab (mobile lock/unlock, app switching, etc.)
+  useEffect(() => {
+    if (!storedPlayerId) return;
+
+    function onResume() {
+      // Only refresh when we're actually visible/active
+      if (document.visibilityState === "visible") {
+        refreshInbox(storedPlayerId);
+      }
+    }
+
+    document.addEventListener("visibilitychange", onResume);
+    window.addEventListener("focus", onResume);
+    window.addEventListener("pageshow", onResume); // Safari bfcache restore
+
+    return () => {
+      document.removeEventListener("visibilitychange", onResume);
+      window.removeEventListener("focus", onResume);
+      window.removeEventListener("pageshow", onResume);
+    };
+  }, [storedPlayerId, refreshInbox]);
+
   // Track previously seen message IDs (for enter animations)
   useEffect(() => {
     prevMessageIds.current = new Set(messages.map((m) => m.id));
