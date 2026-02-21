@@ -15,12 +15,16 @@ export default function MessageLog({ items }) {
                 })
               : "";
 
+            const isEveryone =
+              m.to_all === true || m.draft_send_to_everyone === true;
+
             const recipientNames = (m.recipients || [])
               .map((r) => r.display_name)
               .filter(Boolean);
 
-            const recipientsLabel =
-              recipientNames.length === 0
+            const recipientsLabel = isEveryone
+              ? "To: Everyone"
+              : recipientNames.length === 0
                 ? "Recipients: (unknown)"
                 : recipientNames.length === 1
                   ? `To: ${recipientNames[0]}`

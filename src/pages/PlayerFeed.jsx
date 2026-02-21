@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import {
+  useParams,
+  useSearchParams,
+  useNavigate,
+  Link,
+} from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
@@ -28,7 +33,21 @@ export default function PlayerFeed() {
 
   const tableId = table?.id || null;
 
+  const [expired, setExpired] = useState(false);
+  const navigate = useNavigate();
+
   const prevMessageIds = useRef(new Set());
+
+  // Redirect to home if table is expired
+  useEffect(() => {
+    if (!expired) return;
+
+    const t = setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 3000);
+
+    return () => clearTimeout(t);
+  }, [expired, navigate]);
 
   // Persist playerId per table
   useEffect(() => {
@@ -137,6 +156,14 @@ export default function PlayerFeed() {
     });
 
     if (error) {
+      const msg = (error.message || "").toLowerCase();
+
+      // When the table is purged, player_get_inbox often ends up as "not allowed"
+      if (msg.includes("not allowed")) {
+        setExpired(true);
+        return;
+      }
+
       setError(error.message);
       return;
     }
@@ -230,6 +257,21 @@ export default function PlayerFeed() {
 
   return (
     <div style={styles.wrap}>
+      {expired && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: "rgba(0,0,0,0.75)" }}
+        >
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-black/70 p-6 text-center shadow-2xl">
+            <div className="text-xl font-extrabold text-white">
+              This table has expired
+            </div>
+            <div className="mt-2 text-sm text-white/80">
+              Redirecting you to the home page...
+            </div>
+          </div>
+        </div>
+      )}
       {/* Top gradient card (header/profile/errors) */}
       <div style={styles.card}>
         <Link to="/" style={styles.back}>
@@ -260,7 +302,7 @@ export default function PlayerFeed() {
           </div>
         )}
 
-        {error && <p style={styles.error}>{error}</p>}
+        {error && !expired && <p style={styles.error}>{error}</p>}
 
         {!storedPlayerId && (
           <p style={styles.muted}>

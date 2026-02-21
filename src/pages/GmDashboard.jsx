@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 import PlayerGrid from "../components/gm/PlayerGrid";
@@ -62,10 +62,24 @@ function IconShare(props) {
 export default function GmDashboard() {
   const [sendingDraftId, setSendingDraftId] = useState(null);
   const { gmSecret } = useParams();
+  const navigate = useNavigate();
 
   const [table, setTable] = useState(null);
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
+
+  // expired state
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (!expired) return;
+
+    const t = setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 5000);
+
+    return () => clearTimeout(t);
+  }, [expired, navigate]);
 
   // copied state
   const [copied, setCopied] = useState(false);
@@ -110,6 +124,17 @@ export default function GmDashboard() {
     });
 
     if (error) {
+      const msg = (error.message || "").toLowerCase();
+
+      // When the table is purged, gm RPCs will start failing
+      if (
+        msg.includes("invalid gm secret") ||
+        msg.includes("table not found")
+      ) {
+        setExpired(true);
+        return;
+      }
+
       setError(error.message);
       setPlayers([]);
       return;
@@ -127,7 +152,20 @@ export default function GmDashboard() {
   useEffect(() => {
     if (!table?.id) return;
 
-    const t = setInterval(() => {
+    const t = setInterval(async () => {
+      // 1) Ping table existence
+      const { data, error } = await supabase.rpc("gm_get_table", {
+        p_gm_secret: gmSecret,
+      });
+
+      const tRow = data?.table || null;
+
+      if (error || !tRow) {
+        setExpired(true);
+        return;
+      }
+
+      // 2) Still alive, refresh players
       loadPlayers();
     }, 2000);
 
@@ -140,6 +178,15 @@ export default function GmDashboard() {
       prev.filter((id) => players.some((p) => p.id === id)),
     );
   }, [players]);
+
+  useEffect(() => {
+    if (sendToEveryone) return;
+    if (!players.length) return;
+
+    if (selectedIds.length === players.length) {
+      setSendToEveryone(true);
+    }
+  }, [selectedIds, players, sendToEveryone]);
 
   // When imageFile changes, make a preview URL
   useEffect(() => {
@@ -282,7 +329,7 @@ export default function GmDashboard() {
       const t = data?.table || null;
 
       if (!t) {
-        setError("Table not found (or access denied by RLS).");
+        setExpired(true);
         setTable(null);
         return;
       }
@@ -734,6 +781,21 @@ export default function GmDashboard() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--tw-bg)" }}>
+      {expired && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: "rgba(0,0,0,0.75)" }}
+        >
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-black/70 p-6 text-center shadow-2xl">
+            <div className="text-xl font-extrabold text-white">
+              This table has expired
+            </div>
+            <div className="mt-2 text-sm text-white/80">
+              Redirecting you to the home page...
+            </div>
+          </div>
+        </div>
+      )}
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Top header row */}
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
