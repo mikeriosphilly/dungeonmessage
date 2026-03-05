@@ -680,6 +680,7 @@ export default function GmDashboard() {
         p_recipient_ids: recipientIds,
         p_image_url: draft.image_url || null,
         p_message_id: draft.id,
+        p_send_to_everyone: !!draft.draft_send_to_everyone,
       });
 
       if (error) throw error;
