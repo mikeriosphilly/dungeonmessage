@@ -6,7 +6,7 @@ import {
   Link,
 } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { avatarSrcFromKey } from "../lib/avatars";
+import { avatarSrcFromKey, GM_AVATAR_SRC } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import envelopeImg from "../assets/envelope.png";
 import bgPaper from "../assets/bg_paper.jpg";
@@ -405,7 +405,7 @@ export default function PlayerFeed() {
       <div style={styles.msgList}>
         {messages.length === 0 ? (
           <div style={styles.emptyState}>
-            <div style={styles.emptyStateOrb} />
+            <img src={GM_AVATAR_SRC} alt="Game Master" style={styles.emptyStateOrb} />
             <p style={styles.emptyStateText}>Awaiting word from your GM...</p>
             <p style={styles.emptyStateSub}>Messages will appear here as they are sent</p>
           </div>
@@ -594,13 +594,14 @@ const styles = {
   },
 
   emptyStateOrb: {
-    width: 56,
-    height: 56,
+    width: 72,
+    height: 72,
     borderRadius: "50%",
-    border: "1px solid rgba(181,160,120,0.25)",
-    background: "radial-gradient(circle at 40% 35%, rgba(181,160,120,0.12) 0%, rgba(0,0,0,0) 70%)",
+    objectFit: "cover",
+    display: "block",
     marginBottom: 20,
-    boxShadow: "0 0 24px rgba(181,160,120,0.08)",
+    border: "2px solid rgba(151, 130, 98, 0.4)",
+    boxShadow: "0 0 24px rgba(181,160,120,0.12)",
   },
 
   emptyStateText: {

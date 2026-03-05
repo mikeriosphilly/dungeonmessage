@@ -7,6 +7,9 @@ import a06 from "../assets/avatars/Avatar-06.svg";
 import a07 from "../assets/avatars/Avatar-07.svg";
 import a08 from "../assets/avatars/Avatar-08.svg";
 
+// Avatar-07 is reserved for the GM — not available to players.
+export const GM_AVATAR_SRC = a07;
+
 export const AVATARS = [
   { key: "01", src: a01 },
   { key: "02", src: a02 },
@@ -14,7 +17,6 @@ export const AVATARS = [
   { key: "04", src: a04 },
   { key: "05", src: a05 },
   { key: "06", src: a06 },
-  { key: "07", src: a07 },
   { key: "08", src: a08 },
 ];
 

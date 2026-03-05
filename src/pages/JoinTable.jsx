@@ -35,7 +35,7 @@ export default function JoinTable() {
   const keys = useMemo(() => {
     return Array.isArray(AVATAR_KEYS) && AVATAR_KEYS.length
       ? AVATAR_KEYS
-      : ["01", "02", "03", "04", "05", "06", "07"];
+      : ["01", "02", "03", "04", "05", "06", "08"];
   }, []);
 
   useEffect(() => {
@@ -471,10 +471,11 @@ const styles = {
     height: 72,
     borderRadius: "50%",
     border: "2px solid #6A7984",
-    background: "rgba(255,255,255,0.04)",
-    padding: 4,
+    background: "transparent",
+    padding: 0,
     cursor: "pointer",
     display: "block",
+    overflow: "hidden",
     transition: "border-color 0.15s ease",
   },
 
