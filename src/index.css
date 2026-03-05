@@ -52,6 +52,8 @@ body {
   margin: 0;
   min-width: 320px;
 
+  background-color: #1c1a17;
+
   background-image:
     radial-gradient(
       ellipse at center,
@@ -65,7 +67,7 @@ body {
   background-position:
     center,
     top left;
-  background-attachment: fixed, fixed;
+  background-attachment: scroll, scroll;
 
   color: var(--tw-text);
 }
