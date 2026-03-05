@@ -19,7 +19,6 @@ export default function JoinTable() {
   const [tableOk, setTableOk] = useState(false);
   const [authReady, setAuthReady] = useState(false);
 
-  // ✅ Last-session recovery
   const [lastSession, setLastSession] = useState(null);
   const [lastTableName, setLastTableName] = useState("");
 
@@ -38,24 +37,19 @@ export default function JoinTable() {
       : ["01", "02", "03", "04", "05", "06", "07"];
   }, []);
 
-  // Prefill code from /join?code=XXXX
   useEffect(() => {
     const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
     if (fromUrl && fromUrl !== code) setCode(fromUrl);
   }, [searchParams]);
 
-  // Ensure anon auth once
   useEffect(() => {
     let alive = true;
-
     async function boot() {
       try {
         setError("");
         await ensureAnonAuth();
-
         const { data } = await supabase.auth.getSession();
         if (!alive) return;
-
         setAuthReady(!!data?.session);
       } catch (e) {
         if (!alive) return;
@@ -63,58 +57,37 @@ export default function JoinTable() {
         setError(e?.message || "Auth failed. Please refresh.");
       }
     }
-
     boot();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
-  // Restore last session (device-level)
   useEffect(() => {
     const raw = localStorage.getItem("tw_last_session");
     if (!raw) return;
-
     try {
       const parsed = JSON.parse(raw);
       if (!parsed?.tableCode) return;
-
       setLastSession(parsed);
-
       (async () => {
-        const { data } = await supabase.rpc("get_table_public", {
-          p_code: parsed.tableCode,
-        });
-
+        const { data } = await supabase.rpc("get_table_public", { p_code: parsed.tableCode });
         const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
-
-        if (table?.name) {
-          setLastTableName(table.name);
-        }
+        if (table?.name) setLastTableName(table.name);
       })();
     } catch {
       localStorage.removeItem("tw_last_session");
     }
   }, []);
 
-  // Close avatar picker on outside click
   useEffect(() => {
     function onDown(e) {
       if (!pickerOpen) return;
-      if (
-        popoverRef.current?.contains(e.target) ||
-        buttonRef.current?.contains(e.target)
-      )
-        return;
-
+      if (popoverRef.current?.contains(e.target) || buttonRef.current?.contains(e.target)) return;
       setPickerOpen(false);
     }
-
     function onKey(e) {
       if (pickerOpen && e.key === "Escape") setPickerOpen(false);
     }
-
     window.addEventListener("mousedown", onDown);
     window.addEventListener("keydown", onKey);
     return () => {
@@ -123,79 +96,42 @@ export default function JoinTable() {
     };
   }, [pickerOpen]);
 
-  // Validate table code
   useEffect(() => {
     const trimmed = code.trim().toUpperCase();
     setTableOk(false);
-
-    if (!authReady || trimmed.length < 4) {
-      setError("");
-      return;
-    }
-
+    if (!authReady || trimmed.length < 4) { setError(""); return; }
     let cancelled = false;
-
     const t = setTimeout(async () => {
       try {
         await ensureAnonAuth();
-
-        const { data } = await supabase.rpc("get_table_public", {
-          p_code: trimmed,
-        });
-
+        const { data } = await supabase.rpc("get_table_public", { p_code: trimmed });
         if (cancelled) return;
-
         const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
-
-        if (!table) {
-          setError("That table code does not exist.");
-          return;
-        }
-
-        if (table.status !== "active") {
-          setError("That session is not active.");
-          return;
-        }
-
-        const last = table.last_gm_activity_at
-          ? new Date(table.last_gm_activity_at).getTime()
-          : 0;
-
-        // keeping the constant in case you use it later
-        void last;
-        void GM_INACTIVITY_HOURS;
-
+        if (!table) { setError("That table code does not exist."); return; }
+        if (table.status !== "active") { setError("That session is not active."); return; }
+        const last = table.last_gm_activity_at ? new Date(table.last_gm_activity_at).getTime() : 0;
+        void last; void GM_INACTIVITY_HOURS;
         setTableOk(true);
         setError("");
       } catch (e) {
         if (!cancelled) setError("Could not validate table.");
       }
     }, 250);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
+    return () => { cancelled = true; clearTimeout(t); };
   }, [code, authReady]);
 
   async function onJoin() {
     setBusy(true);
     setError("");
-
     try {
       await ensureAnonAuth();
       const { table, player } = await joinTable(code, name, avatarKey);
-
-      localStorage.setItem(
-        "tw_last_session",
-        JSON.stringify({
-          tableCode: table.code,
-          displayName: name,
-          avatarKey,
-        }),
-      );
-
+      localStorage.setItem("tw_last_session", JSON.stringify({
+        tableCode: table.code,
+        displayName: name,
+        avatarKey,
+      }));
       navigate(`/table/${table.code}?playerId=${player.id}`);
     } catch (e) {
       setError(e?.message || "Could not join table.");
@@ -204,157 +140,182 @@ export default function JoinTable() {
     }
   }
 
-  const [hovered, setHovered] = useState(null);
+  async function onRejoin() {
+    if (!lastSession) return;
+    setBusy(true);
+    setError("");
+    try {
+      await ensureAnonAuth();
+      const { table, player } = await joinTable(
+        lastSession.tableCode,
+        lastSession.displayName,
+        lastSession.avatarKey,
+      );
+      navigate(`/table/${table.code}?playerId=${player.id}`);
+    } catch (e) {
+      setError(e?.message || "Could not rejoin that table. It may have expired.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.card}>
-        <Link to="/" style={styles.back}>
-          ← Back
+      <div style={styles.inner}>
+
+        {/* Logo */}
+        <Link to="/" style={{ display: "block", marginBottom: 8 }} className="landing-fade-up" tabIndex={-1}>
+          <img
+            src="/Logo_TableWhisper.png"
+            alt="TableWhisper — home"
+            style={styles.logo}
+          />
         </Link>
 
-        <h1 style={styles.title}>Join a table</h1>
+        <h1
+          className="landing-fade-up"
+          style={{ fontSize: "clamp(42px, 8vw, 64px)", margin: "4px 0 0", animationDelay: "0.1s" }}
+        >
+          Join a Table
+        </h1>
 
+        <div
+          className="landing-fade-up landing-divider"
+          style={{ animationDelay: "0.22s" }}
+        >
+          <span className="landing-divider-line" />
+          <span className="landing-divider-gem">◆</span>
+          <span className="landing-divider-line" />
+        </div>
+
+        <p
+          className="landing-fade-up"
+          style={{ ...styles.subtitle, animationDelay: "0.32s" }}
+        >
+          Enter the code your Game Master shared<br />
+          and choose your adventurer identity.
+        </p>
+
+        {/* Resume session */}
         {lastSession && lastTableName && (
-          <div style={styles.resumeBox}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              You were previously in “{lastTableName}” as{" "}
-              <strong>{lastSession.displayName}</strong>.
+          <div
+            className="landing-fade-up"
+            style={{ ...styles.resumeBox, animationDelay: "0.38s" }}
+          >
+            <div style={styles.resumeText}>
+              <span style={styles.resumeLabel}>Last session</span>
+              <span style={styles.resumeDetail}>
+                "{lastTableName}" as <strong style={{ color: "#D5CDBE" }}>{lastSession.displayName}</strong>
+              </span>
             </div>
             <button
-              style={{
-                ...styles.resumeBtn,
-                ...(hovered === "resume" ? styles.primaryBtnHover : {}),
-                ...(busy ? styles.btnDisabled : {}),
-              }}
+              style={{ ...styles.rejoinBtn, ...(busy ? styles.btnDisabled : {}) }}
               disabled={busy}
-              onMouseEnter={() => setHovered("resume")}
-              onMouseLeave={() => setHovered(null)}
-              onClick={async () => {
-                if (!lastSession) return;
-
-                setBusy(true);
-                setError("");
-
-                try {
-                  await ensureAnonAuth();
-
-                  const { table, player } = await joinTable(
-                    lastSession.tableCode,
-                    lastSession.displayName,
-                    lastSession.avatarKey,
-                  );
-
-                  navigate(`/table/${table.code}?playerId=${player.id}`);
-                } catch (e) {
-                  setError(
-                    e?.message ||
-                      "Could not rejoin that table. It may have expired.",
-                  );
-                } finally {
-                  setBusy(false);
-                }
-              }}
+              onClick={onRejoin}
+              className="landing-btn-start"
             >
               {busy ? "Rejoining..." : "Jump back in"}
             </button>
           </div>
         )}
 
-        <label style={styles.label}>Table code</label>
-        <input
-          style={{
-            ...styles.input,
-            ...(code.trim().length >= 4 && !tableOk && error
-              ? styles.inputError
-              : {}),
-          }}
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="K7F9Q"
-        />
+        {/* Form */}
+        <div
+          className="landing-fade-up"
+          style={{ ...styles.form, animationDelay: "0.44s" }}
+        >
+          {/* Table code */}
+          <label style={styles.label}>Table code</label>
+          <input
+            style={{
+              ...styles.input,
+              ...(code.trim().length >= 4 && !tableOk && error ? styles.inputError : {}),
+              ...(tableOk ? styles.inputOk : {}),
+            }}
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="K7F9Q"
+          />
 
-        <div style={styles.avatarBlock}>
-          <div style={styles.avatarPreviewWrap}>
+          {/* Avatar */}
+          <label style={styles.label}>Your avatar</label>
+          <div style={styles.avatarRow}>
+            <div style={styles.avatarPreviewWrap}>
+              <button
+                type="button"
+                onClick={() => setPickerOpen((v) => !v)}
+                style={styles.avatarPreviewBtn}
+                aria-label="Open avatar picker"
+              >
+                <img
+                  src={avatarSrcFromKey(avatarKey)}
+                  alt="Your avatar"
+                  style={styles.avatarPreviewImg}
+                />
+              </button>
+
+              {pickerOpen && (
+                <div ref={popoverRef} style={styles.popover}>
+                  <div style={styles.popoverTitle}>Choose your avatar</div>
+                  <div style={styles.grid}>
+                    {keys.map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => { setAvatarKey(k); setPickerOpen(false); }}
+                        style={{
+                          ...styles.thumbBtn,
+                          ...(k === avatarKey ? styles.thumbBtnSelected : {}),
+                        }}
+                      >
+                        <img src={avatarSrcFromKey(k)} alt="" style={styles.thumbImg} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
+              ref={buttonRef}
               type="button"
               onClick={() => setPickerOpen((v) => !v)}
-              style={styles.avatarPreviewBtn}
-              aria-label="Open avatar picker"
+              style={styles.changeAvatarBtn}
             >
-              <img
-                src={avatarSrcFromKey(avatarKey)}
-                alt="Your avatar"
-                style={styles.avatarPreviewImg}
-              />
+              Change avatar
             </button>
-
-            {pickerOpen && (
-              <div ref={popoverRef} style={styles.popover}>
-                <div style={styles.grid}>
-                  {keys.map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => {
-                        setAvatarKey(k);
-                        setPickerOpen(false);
-                      }}
-                      style={{
-                        ...styles.thumbBtn,
-                        ...(k === avatarKey ? styles.thumbBtnSelected : {}),
-                      }}
-                    >
-                      <img
-                        src={avatarSrcFromKey(k)}
-                        alt=""
-                        style={styles.thumbImg}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
+          {/* Name */}
+          <label style={styles.label}>Your name</label>
+          <input
+            style={styles.input}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && canJoin && onJoin()}
+            placeholder="Ser Aldric of the Mist"
+          />
+
+          {/* Submit */}
           <button
-            ref={buttonRef}
-            type="button"
-            onClick={() => setPickerOpen((v) => !v)}
             style={{
-              ...styles.chooseBtn,
-              ...(hovered === "choose" ? styles.ghostBtnHover : {}),
+              ...styles.submitBtn,
+              ...(!canJoin ? styles.submitBtnDisabled : {}),
             }}
-            onMouseEnter={() => setHovered("choose")}
-            onMouseLeave={() => setHovered(null)}
+            disabled={!canJoin}
+            onClick={onJoin}
+            className={canJoin ? "landing-btn-start" : ""}
           >
-            Change avatar
+            {busy ? "Entering the session..." : "Join table"}
           </button>
+
+          {error && <p style={styles.error}>{error}</p>}
         </div>
 
-        <label style={styles.label}>Your name</label>
-        <input
-          style={styles.input}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
-        />
+        <Link to="/" style={styles.backLink} className="landing-fade-up">
+          ← Back to home
+        </Link>
 
-        <button
-          style={{
-            ...styles.primaryBtn,
-            ...(hovered === "join" ? styles.primaryBtnHover : {}),
-            ...(!canJoin ? styles.btnDisabled : {}),
-          }}
-          disabled={!canJoin}
-          onMouseEnter={() => setHovered("join")}
-          onMouseLeave={() => setHovered(null)}
-          onClick={onJoin}
-        >
-          {busy ? "Joining..." : "Join table"}
-        </button>
-
-        {error && <p style={styles.error}>{error}</p>}
       </div>
     </div>
   );
@@ -363,168 +324,176 @@ export default function JoinTable() {
 const styles = {
   wrap: {
     minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    padding: 24,
-    background: "var(--tw-bg)",
-    color: "var(--tw-text)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "40px 24px",
   },
 
-  card: {
-    width: "min(560px,100%)",
-    borderRadius: 22,
-    padding: 26,
-    background: "linear-gradient(90deg, var(--tw-card-a), var(--tw-card-b))",
-    border: "1px solid var(--tw-border)",
-    boxShadow: "var(--tw-shadow)",
+  inner: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    width: "min(520px, 100%)",
   },
 
-  back: {
-    textDecoration: "none",
+  logo: {
+    width: 88,
+    height: 88,
+    objectFit: "contain",
+    display: "block",
+    margin: "0 auto",
+    filter: "drop-shadow(0 4px 16px rgba(245, 220, 140, 0.2))",
+  },
+
+  subtitle: {
+    fontFamily: "var(--tw-font-message)",
+    fontStyle: "italic",
+    fontSize: "1.05rem",
+    lineHeight: 1.7,
     color: "var(--tw-text-muted)",
-    display: "inline-block",
-    marginBottom: 10,
+    margin: "0 0 24px",
   },
 
-  title: {
-    marginTop: 2,
-    marginBottom: 14,
-    fontSize: 44,
+  resumeBox: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+    padding: "14px 18px",
+    border: "1px solid rgba(245, 236, 205, 0.15)",
+    background: "rgba(255,255,255,0.03)",
+    marginBottom: 24,
+    textAlign: "left",
+  },
+
+  resumeText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+    minWidth: 0,
+  },
+
+  resumeLabel: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.7rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "var(--tw-text-muted)",
+  },
+
+  resumeDetail: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.9rem",
+    color: "var(--tw-text-muted)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  rejoinBtn: {
+    flexShrink: 0,
+    padding: "10px 16px",
+    background: "#434135",
+    border: "1px solid #978262",
+    boxShadow: "inset 0 0 12px 1px rgba(155, 127, 63, 0.7)",
+    color: "#F5ECCD",
     fontFamily: "var(--tw-font-heading)",
-    color: "var(--tw-text)",
-    letterSpacing: "0.01em",
+    fontSize: "1rem",
+    letterSpacing: "0.03em",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    transition: "transform 0.15s ease, filter 0.15s ease",
+  },
+
+  btnDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+  },
+
+  form: {
+    width: "100%",
+    textAlign: "left",
   },
 
   label: {
     display: "block",
-    marginTop: 12,
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.8rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "var(--tw-text-muted)",
     marginBottom: 8,
-    fontWeight: 800,
-    color: "var(--tw-text)",
+    marginTop: 20,
   },
 
   input: {
     width: "100%",
-    padding: "12px 14px",
-    borderRadius: 16,
-    border: "1px solid var(--tw-border)",
-    background: "rgba(255,255,255,0.04)",
-    color: "var(--tw-text)",
-    outline: "none",
+    padding: "14px 16px",
+    background: "#0D1013",
+    border: "1px solid #6A7984",
+    color: "#D5CDBE",
     fontSize: 16,
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+    fontFamily: "Lato, sans-serif",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.15s ease",
   },
 
   inputError: {
-    border: "1px solid rgba(194,3,3,0.8)",
-    boxShadow: "0 0 0 3px rgba(194,3,3,0.18)",
+    borderColor: "rgba(194, 3, 3, 0.8)",
+    boxShadow: "0 0 0 2px rgba(194, 3, 3, 0.18)",
   },
 
-  primaryBtn: {
-    marginTop: 16,
-    padding: "14px 16px",
-    borderRadius: 16,
-    background:
-      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
-    color: "var(--tw-button-text)",
-    fontWeight: 900,
-    border: "none",
-    width: "100%",
-    cursor: "pointer",
-    letterSpacing: "0.02em",
-    boxShadow: "var(--tw-shadow)",
-    transition:
-      "transform 120ms ease, filter 120ms ease, box-shadow 120ms ease",
+  inputOk: {
+    borderColor: "rgba(155, 127, 63, 0.7)",
   },
 
-  primaryBtnHover: {
-    transform: "translateY(-1px)",
-    filter: "brightness(1.08)",
-    boxShadow: "0 12px 36px rgba(0,0,0,0.55)",
-  },
-
-  btnDisabled: {
-    opacity: 0.55,
-    cursor: "not-allowed",
-    transform: "none",
-    filter: "none",
-  },
-
-  error: {
-    marginTop: 14,
-    color: "var(--tw-accent-2)",
-    fontWeight: 700,
-  },
-
-  resumeBox: {
+  avatarRow: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 14,
-    border: "1px solid var(--tw-border)",
-    background: "rgba(255,255,255,0.04)",
-    color: "var(--tw-text-muted)",
+    gap: 16,
+    marginTop: 4,
   },
 
-  resumeBtn: {
-    border: "none",
-    padding: "10px 12px",
-    borderRadius: 14,
-    background:
-      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
-    color: "var(--tw-button-text)",
-    fontWeight: 900,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-    boxShadow: "var(--tw-shadow)",
-    transition:
-      "transform 120ms ease, filter 120ms ease, box-shadow 120ms ease",
+  avatarPreviewWrap: {
+    position: "relative",
+    flexShrink: 0,
   },
-
-  avatarBlock: {
-    marginTop: 18,
-    display: "grid",
-    placeItems: "center",
-    gap: 10,
-  },
-
-  avatarPreviewWrap: { position: "relative", width: 122, height: 122 },
 
   avatarPreviewBtn: {
-    width: "100%",
-    height: "100%",
+    width: 72,
+    height: 72,
     borderRadius: "50%",
-    border: "1px solid var(--tw-border)",
+    border: "2px solid #6A7984",
     background: "rgba(255,255,255,0.04)",
-    padding: 6,
+    padding: 4,
     cursor: "pointer",
-    boxShadow: "var(--tw-shadow)",
+    display: "block",
+    transition: "border-color 0.15s ease",
   },
 
   avatarPreviewImg: {
     width: "100%",
     height: "100%",
     borderRadius: "50%",
-    display: "block",
     objectFit: "cover",
+    display: "block",
   },
 
-  chooseBtn: {
-    borderRadius: 14,
-    padding: "10px 12px",
-    fontWeight: 900,
-    cursor: "pointer",
-    border: "1px solid var(--tw-border)",
+  changeAvatarBtn: {
+    padding: "10px 16px",
     background: "rgba(255,255,255,0.04)",
-    color: "var(--tw-text)",
-    transition: "transform 120ms ease, background 120ms ease",
-  },
-
-  ghostBtnHover: {
-    transform: "translateY(-1px)",
-    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(245, 236, 205, 0.2)",
+    color: "var(--tw-text-muted)",
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.85rem",
+    cursor: "pointer",
+    transition: "background 0.15s ease, border-color 0.15s ease",
   },
 
   popover: {
@@ -533,34 +502,40 @@ const styles = {
     left: "50%",
     transform: "translate(-50%, -50%)",
     zIndex: 9999,
-    width: "min(520px, calc(100vw - 32px))",
-    maxWidth: 520,
-    background: "linear-gradient(90deg, var(--tw-card-a), var(--tw-card-b))",
-    border: "1px solid var(--tw-border)",
-    boxShadow: "0 18px 44px rgba(0,0,0,0.75)",
-    padding: 14,
-    borderRadius: 22,
+    width: "min(480px, calc(100vw - 32px))",
+    background: "#14181B",
+    border: "1px solid rgba(245, 236, 205, 0.18)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
+    padding: 20,
+  },
+
+  popoverTitle: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.2rem",
+    color: "#F5ECCD",
+    marginBottom: 16,
+    textAlign: "center",
+    letterSpacing: "0.04em",
   },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     gap: 10,
   },
 
   thumbBtn: {
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.06)",
     background: "rgba(255,255,255,0.02)",
     cursor: "pointer",
     padding: 6,
-    borderRadius: 16,
-    transition: "transform 120ms ease, background 120ms ease",
+    transition: "transform 0.12s ease, border-color 0.12s ease",
   },
 
   thumbBtnSelected: {
-    border: "1px solid rgba(112,66,249,0.9)",
-    background: "rgba(112,66,249,0.18)",
-    transform: "translateY(-1px)",
+    border: "2px solid #978262",
+    background: "rgba(155, 127, 63, 0.18)",
+    transform: "scale(1.06)",
   },
 
   thumbImg: {
@@ -569,5 +544,43 @@ const styles = {
     borderRadius: "50%",
     display: "block",
     objectFit: "cover",
+  },
+
+  submitBtn: {
+    marginTop: 20,
+    width: "100%",
+    padding: "16px 20px",
+    background: "#434135",
+    border: "1px solid #978262",
+    boxShadow: "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    color: "#F5ECCD",
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.3rem",
+    letterSpacing: "0.04em",
+    cursor: "pointer",
+    transition: "transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease",
+  },
+
+  submitBtnDisabled: {
+    opacity: 0.45,
+    cursor: "not-allowed",
+    boxShadow: "none",
+  },
+
+  error: {
+    marginTop: 12,
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.9rem",
+    color: "var(--tw-accent-2)",
+  },
+
+  backLink: {
+    marginTop: 28,
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.85rem",
+    color: "var(--tw-text-muted)",
+    textDecoration: "none",
+    letterSpacing: "0.04em",
+    opacity: 0.7,
   },
 };

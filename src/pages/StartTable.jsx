@@ -13,7 +13,6 @@ export default function StartTable() {
   async function onStart() {
     setBusy(true);
     setError("");
-
     try {
       const table = await startTable(name.trim());
       navigate(`/gm/${table.gm_secret}`);
@@ -26,39 +25,75 @@ export default function StartTable() {
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.card}>
-        <Link to="/" style={styles.back}>
-          ← Back
+      <div style={styles.inner}>
+
+        {/* Logo — links home */}
+        <Link to="/" style={{ display: "block", marginBottom: 8 }} className="landing-fade-up" tabIndex={-1}>
+          <img
+            src="/Logo_TableWhisper.png"
+            alt="TableWhisper — home"
+            style={styles.logo}
+          />
         </Link>
 
-        <h1 style={styles.title}>Start a table</h1>
+        <h1
+          className="landing-fade-up"
+          style={{ fontSize: "clamp(42px, 8vw, 64px)", margin: "4px 0 0", animationDelay: "0.1s" }}
+        >
+          Start a Table
+        </h1>
 
-        <p style={styles.subtitle}>
-          Create a new session and receive a secret link for the Game Master.
-          Your players will join with a short code.
+        <div
+          className="landing-fade-up landing-divider"
+          style={{ animationDelay: "0.22s" }}
+        >
+          <span className="landing-divider-line" />
+          <span className="landing-divider-gem">◆</span>
+          <span className="landing-divider-line" />
+        </div>
+
+        <p
+          className="landing-fade-up"
+          style={{ ...styles.subtitle, animationDelay: "0.32s" }}
+        >
+          Name your session. You'll receive a secret link<br />
+          to command from, and a code for your players.
         </p>
 
-        <label style={styles.label}>Table name</label>
-        <input
-          style={styles.input}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="The Gilded Goose Tavern"
-          autoFocus
-        />
-
-        <button
-          style={{
-            ...styles.primaryBtn,
-            ...(canStart ? {} : styles.primaryBtnDisabled),
-          }}
-          disabled={!canStart}
-          onClick={onStart}
+        {/* Form */}
+        <div
+          className="landing-fade-up"
+          style={{ ...styles.form, animationDelay: "0.44s" }}
         >
-          {busy ? "Starting..." : "Start session"}
-        </button>
+          <label style={styles.label}>Table name</label>
+          <input
+            style={styles.input}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && canStart && onStart()}
+            placeholder="The Gilded Goose Tavern"
+            autoFocus
+          />
 
-        {error && <p style={styles.error}>{error}</p>}
+          <button
+            style={{
+              ...styles.submitBtn,
+              ...(!canStart ? styles.submitBtnDisabled : {}),
+            }}
+            disabled={!canStart}
+            onClick={onStart}
+            className={canStart ? "landing-btn-start" : ""}
+          >
+            {busy ? "Opening the session..." : "Start session"}
+          </button>
+
+          {error && <p style={styles.error}>{error}</p>}
+        </div>
+
+        <Link to="/" style={styles.backLink} className="landing-fade-up" tabIndex={0}>
+          ← Back to home
+        </Link>
+
       </div>
     </div>
   );
@@ -67,87 +102,103 @@ export default function StartTable() {
 const styles = {
   wrap: {
     minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    padding: 24,
-    background: "var(--tw-bg)",
-    color: "var(--tw-text)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "40px 24px",
   },
 
-  card: {
-    width: "min(560px, 100%)",
-    padding: 32,
-    borderRadius: 18,
-    background: "transparent",
+  inner: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     textAlign: "center",
+    width: "min(520px, 100%)",
   },
 
-  back: {
-    display: "inline-block",
-    marginBottom: 14,
-    textDecoration: "none",
-    color: "var(--tw-text-muted)",
-  },
-
-  title: {
-    margin: 0,
-    marginBottom: 10,
-    fontSize: 42,
-    fontFamily: "var(--tw-font-heading)",
-    color: "var(--tw-text)",
+  logo: {
+    width: 88,
+    height: 88,
+    objectFit: "contain",
+    display: "block",
+    margin: "0 auto",
+    filter: "drop-shadow(0 4px 16px rgba(245, 220, 140, 0.2))",
   },
 
   subtitle: {
-    marginBottom: 22,
-    lineHeight: 1.55,
+    fontFamily: "var(--tw-font-message)",
+    fontStyle: "italic",
     fontSize: "1.05rem",
+    lineHeight: 1.7,
     color: "var(--tw-text-muted)",
+    margin: "0 0 32px",
+  },
+
+  form: {
+    width: "100%",
+    textAlign: "left",
   },
 
   label: {
     display: "block",
-    textAlign: "left",
-    marginBottom: 6,
+    fontFamily: "Lato, sans-serif",
     fontWeight: 700,
-    color: "var(--tw-text)",
+    fontSize: "0.8rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "var(--tw-text-muted)",
+    marginBottom: 8,
   },
 
   input: {
     width: "100%",
     padding: "14px 16px",
-    borderRadius: 14,
-    border: "1px solid var(--tw-border)",
-    background: "rgba(255,255,255,0.05)",
-    color: "var(--tw-text)",
-    fontSize: "1rem",
-    marginBottom: 18,
+    background: "#0D1013",
+    border: "1px solid #6A7984",
+    color: "#D5CDBE",
+    fontSize: 16,
+    fontFamily: "Lato, sans-serif",
     outline: "none",
+    marginBottom: 16,
+    boxSizing: "border-box",
+    transition: "border-color 0.15s ease",
   },
 
-  primaryBtn: {
+  submitBtn: {
     width: "100%",
-    padding: "14px 18px",
-    borderRadius: 16,
-    background:
-      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
-    color: "var(--tw-button-text)",
-    fontWeight: 800,
-    fontSize: "1.05rem",
-    border: "none",
+    padding: "16px 20px",
+    background: "#434135",
+    border: "1px solid #978262",
+    boxShadow: "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    color: "#F5ECCD",
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.3rem",
+    letterSpacing: "0.04em",
     cursor: "pointer",
-    boxShadow: "var(--tw-shadow)",
-    transition:
-      "transform 140ms ease, box-shadow 140ms ease, filter 140ms ease",
+    transition: "transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease",
   },
 
-  primaryBtnDisabled: {
-    opacity: 0.5,
+  submitBtnDisabled: {
+    opacity: 0.45,
     cursor: "not-allowed",
-    filter: "grayscale(0.4)",
+    boxShadow: "none",
   },
 
   error: {
-    marginTop: 14,
+    marginTop: 12,
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.9rem",
     color: "var(--tw-accent-2)",
+  },
+
+  backLink: {
+    marginTop: 28,
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.85rem",
+    color: "var(--tw-text-muted)",
+    textDecoration: "none",
+    letterSpacing: "0.04em",
+    opacity: 0.7,
+    transition: "opacity 0.15s",
   },
 };
