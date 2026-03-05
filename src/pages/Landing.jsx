@@ -1,52 +1,68 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
 
 export default function Landing() {
-  const [hovered, setHovered] = useState(null);
-
   return (
     <div style={styles.wrap}>
-      <div style={styles.card}>
-        {/* Logo */}
+      <div style={styles.inner}>
+        {/* Logo — drops in with warm glow */}
         <img
           src="/Logo_TableWhisper.png"
-          alt="TableWhisper logo"
+          alt="TableWhisper"
           style={styles.logo}
+          className="landing-logo"
         />
 
-        {/* Title */}
-        <h1 style={styles.title}>TableWhisper</h1>
+        {/* Title — uses global metallic h1 CSS */}
+        <h1
+          className="landing-fade-up"
+          style={{
+            fontSize: "clamp(52px, 10vw, 80px)",
+            margin: "12px 0 0",
+            animationDelay: "0.2s",
+          }}
+        >
+          TableWhisper
+        </h1>
+
+        {/* Ornamental divider */}
+        <div
+          className="landing-fade-up landing-divider"
+          style={{ animationDelay: "0.38s" }}
+        >
+          <span className="landing-divider-line" />
+          <span className="landing-divider-gem">◆</span>
+          <span className="landing-divider-line" />
+        </div>
 
         {/* Subtitle */}
-        <p style={styles.subtitle}>
-          Private notes, secret quests, and dramatic reveals. No passing paper
-          like it’s 2004.
+        <p
+          className="landing-fade-up"
+          style={{ ...styles.subtitle, animationDelay: "0.5s" }}
+        >
+          Private messages for your table.
         </p>
 
-        {/* Actions */}
-        <div style={styles.actions}>
+        {/* CTAs */}
+        <div
+          className="landing-fade-up"
+          style={{ ...styles.actions, animationDelay: "0.68s" }}
+        >
           <Link
             to="/start"
-            style={{
-              ...styles.primaryBtn,
-              ...(hovered === "start" ? styles.primaryBtnHover : {}),
-            }}
-            onMouseEnter={() => setHovered("start")}
-            onMouseLeave={() => setHovered(null)}
+            className="landing-btn landing-btn-start"
+            style={styles.startBtn}
           >
-            Start a table
+            <span style={styles.btnLabel}>Start a Table</span>
+            <span style={styles.btnRole}>Game Master</span>
           </Link>
 
           <Link
             to="/join"
-            style={{
-              ...styles.primaryBtn,
-              ...(hovered === "join" ? styles.primaryBtnHover : {}),
-            }}
-            onMouseEnter={() => setHovered("join")}
-            onMouseLeave={() => setHovered(null)}
+            className="landing-btn landing-btn-join"
+            style={styles.joinBtn}
           >
-            Join a table
+            <span style={styles.btnLabel}>Join a Table</span>
+            <span style={styles.btnRole}>Adventurer</span>
           </Link>
         </div>
       </div>
@@ -57,72 +73,81 @@ export default function Landing() {
 const styles = {
   wrap: {
     minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    padding: 24,
-    background: "var(--tw-bg)",
-    color: "var(--tw-text)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "40px 24px",
   },
 
-  card: {
-    width: "min(560px, 100%)",
-    padding: 32,
+  inner: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     textAlign: "center",
-    background: "transparent",
+    width: "min(640px, 100%)",
   },
 
-  // 🔮 Big, dramatic logo
   logo: {
-    width: 240,
-    height: 240,
-    margin: "0 auto 22px",
+    width: 200,
+    height: 200,
+    objectFit: "contain",
     display: "block",
-    borderRadius: 40,
-    boxShadow: "var(--tw-shadow)",
-  },
-
-  title: {
-    margin: 0,
-    fontSize: 48,
-    fontFamily: "var(--tw-font-heading)",
-    color: "var(--tw-text)",
   },
 
   subtitle: {
-    marginTop: 12,
-    fontSize: "1.1rem",
-    lineHeight: 1.55,
+    fontFamily: "var(--tw-font-message)",
+    fontStyle: "italic",
+    fontSize: "1.15rem",
+    lineHeight: 1.7,
     color: "var(--tw-text-muted)",
+    margin: "0 0 40px",
   },
 
   actions: {
     display: "flex",
-    justifyContent: "center",
     gap: 16,
-    marginTop: 30,
     flexWrap: "wrap",
+    justifyContent: "center",
   },
 
-  // ✨ Primary-style buttons for both actions
-  primaryBtn: {
-    padding: "14px 22px",
-    borderRadius: 16,
-    background:
-      "linear-gradient(135deg, var(--tw-accent-1), var(--tw-accent-2))",
-    color: "var(--tw-button-text)",
+  startBtn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 5,
+    padding: "20px 40px",
+    background: "#434135",
+    border: "1px solid #978262",
+    boxShadow:
+      "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    color: "#F5ECCD",
     textDecoration: "none",
-    fontWeight: 800,
-    letterSpacing: "0.02em",
-    boxShadow: "var(--tw-shadow)",
-    cursor: "pointer",
-    border: "none",
-    transition:
-      "transform 120ms ease, box-shadow 120ms ease, filter 120ms ease",
   },
 
-  primaryBtnHover: {
-    transform: "translateY(-1px)",
-    boxShadow: "0 12px 36px rgba(0,0,0,0.55)",
-    filter: "brightness(1.1)",
+  joinBtn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 5,
+    padding: "20px 40px",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(245, 236, 205, 0.2)",
+    boxShadow: "0 12px 36px rgba(0,0,0,0.45)",
+    color: "#D5CDBE",
+    textDecoration: "none",
+  },
+
+  btnLabel: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.45rem",
+    letterSpacing: "0.03em",
+  },
+
+  btnRole: {
+    fontFamily: "var(--tw-font-message)",
+    fontSize: "0.75rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    opacity: 0.6,
   },
 };
