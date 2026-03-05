@@ -8,8 +8,9 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
-import bgPaper from "../assets/bg_paper.jpg";
 import envelopeImg from "../assets/envelope.png";
+import bgPaper from "../assets/bg_paper.jpg";
+import bgWood from "../assets/bg_wood.jpg";
 import AppHeader from "../components/AppHeader";
 
 function MagicText({ text }) {
@@ -42,11 +43,12 @@ function MagicText({ text }) {
 
 export default function PlayerFeed() {
   useEffect(() => {
-    const el = document.getElementById("page-bg-img");
-    if (!el) return;
-    const prev = el.src;
-    el.src = bgPaper;
-    return () => { el.src = prev; };
+    document.body.style.backgroundImage = `url(${bgPaper})`;
+    document.body.style.backgroundSize = "420px 420px";
+    return () => {
+      document.body.style.backgroundImage = `url(${bgWood})`;
+      document.body.style.backgroundSize = "960px auto";
+    };
   }, []);
 
   const { code } = useParams();
@@ -390,12 +392,23 @@ export default function PlayerFeed() {
             Missing player session. Go back and join the table again.
           </p>
         )}
+
+        {/* Decorative divider */}
+        <div style={styles.headerDivider}>
+          <div style={styles.headerDividerLine} />
+          <span style={styles.headerDividerGem}>✦</span>
+          <div style={styles.headerDividerLine} />
+        </div>
       </div>
 
       {/* Messages live OUTSIDE the gradient card */}
       <div style={styles.msgList}>
         {messages.length === 0 ? (
-          <p style={styles.muted}>Waiting for messages...</p>
+          <div style={styles.emptyState}>
+            <div style={styles.emptyStateOrb} />
+            <p style={styles.emptyStateText}>Awaiting word from your GM...</p>
+            <p style={styles.emptyStateSub}>Messages will appear here as they are sent</p>
+          </div>
         ) : (
           messages.map((m) => {
             const isSealed = sealedIds.has(m.id);
@@ -470,6 +483,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
+    paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 60px)",
   },
 
   wrap: {
@@ -477,17 +491,38 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    padding: 24,
+    padding: "20px 16px",
     color: "var(--tw-text)",
   },
 
   card: {
-    width: "min(900px, 100%)",
+    width: "min(680px, 100%)",
     borderRadius: 0,
     padding: 0,
     background: "transparent",
     border: "none",
     boxShadow: "none",
+  },
+
+  headerDivider: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 4,
+  },
+
+  headerDividerLine: {
+    flex: 1,
+    height: 1,
+    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.35), transparent)",
+  },
+
+  headerDividerGem: {
+    fontSize: 9,
+    color: "rgba(181,160,120,0.6)",
+    lineHeight: 1,
+    userSelect: "none",
   },
 
   back: {
@@ -496,11 +531,12 @@ const styles = {
   },
 
   title: {
-    marginTop: 12,
-    marginBottom: 10,
-    fontSize: 40,
+    marginTop: 16,
+    marginBottom: 6,
+    fontSize: 44,
     fontFamily: "var(--tw-font-heading)",
     color: "var(--tw-text)",
+    lineHeight: 1.1,
   },
 
   playerHeader: {
@@ -541,10 +577,45 @@ const styles = {
   error: { marginTop: 12, color: "var(--tw-accent-2)" },
 
   msgList: {
-    width: "min(900px, 100%)",
+    width: "min(680px, 100%)",
     display: "grid",
     gap: 12,
-    marginTop: 16,
+    marginTop: 24,
+  },
+
+  emptyState: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "48px 24px",
+    textAlign: "center",
+    position: "relative",
+  },
+
+  emptyStateOrb: {
+    width: 56,
+    height: 56,
+    borderRadius: "50%",
+    border: "1px solid rgba(181,160,120,0.25)",
+    background: "radial-gradient(circle at 40% 35%, rgba(181,160,120,0.12) 0%, rgba(0,0,0,0) 70%)",
+    marginBottom: 20,
+    boxShadow: "0 0 24px rgba(181,160,120,0.08)",
+  },
+
+  emptyStateText: {
+    margin: 0,
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.3rem",
+    color: "var(--tw-text-muted)",
+    letterSpacing: "0.03em",
+  },
+
+  emptyStateSub: {
+    margin: "8px 0 0",
+    fontSize: "0.78rem",
+    color: "rgba(184,173,150,0.5)",
+    fontStyle: "italic",
   },
 
   msgCard: {},

@@ -5,10 +5,9 @@ import App from "./App.jsx";
 import "./index.css";
 import bgWood from "./assets/bg_wood.jpg";
 
-// Set the default background texture before React renders to avoid FOUC.
-// Uses an <img> element rather than CSS background-image — see #page-bg in index.css.
-const pageBgImg = document.getElementById("page-bg-img");
-if (pageBgImg) pageBgImg.src = bgWood;
+// Set background before React renders to avoid FOUC.
+// Inline style cannot be overridden by any CSS rule (including Tailwind).
+document.body.style.backgroundImage = `url(${bgWood})`;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -7,8 +7,9 @@ import MessageLog from "../components/gm/MessageLog";
 import MessageComposer from "../components/gm/MessageComposer";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { Send, Trash2 } from "lucide-react";
-import bgPaper from "../assets/bg_paper.jpg";
 import AppHeader from "../components/AppHeader";
+import bgPaper from "../assets/bg_paper.jpg";
+import bgWood from "../assets/bg_wood.jpg";
 
 const BUCKET = "message-images";
 
@@ -61,13 +62,26 @@ function IconShare(props) {
   );
 }
 
+function SectionLabel({ children }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, rgba(151,130,98,0.28))" }} />
+      <span style={{ fontFamily: "Lato, sans-serif", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B79E81" }}>
+        {children}
+      </span>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, rgba(151,130,98,0.28))" }} />
+    </div>
+  );
+}
+
 export default function GmDashboard() {
   useEffect(() => {
-    const el = document.getElementById("page-bg-img");
-    if (!el) return;
-    const prev = el.src;
-    el.src = bgPaper;
-    return () => { el.src = prev; };
+    document.body.style.backgroundImage = `url(${bgPaper})`;
+    document.body.style.backgroundSize = "420px 420px";
+    return () => {
+      document.body.style.backgroundImage = `url(${bgWood})`;
+      document.body.style.backgroundSize = "960px auto";
+    };
   }, []);
 
   const [sendingDraftId, setSendingDraftId] = useState(null);
@@ -826,32 +840,38 @@ export default function GmDashboard() {
           </div>
         </div>
       )}
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        {/* Session name + table code */}
-        <div className="flex items-center justify-between gap-6">
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+        {/* Session name + table code — stacks on mobile */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <h1
-            className="tw-arcane min-w-0 truncate text-4xl font-extrabold tracking-wide"
-            style={{ fontFamily: "var(--tw-font-heading)" }}
+            className="min-w-0"
+            style={{ fontFamily: "var(--tw-font-heading)", lineHeight: 1.1, fontSize: "clamp(2rem, 6vw, 3rem)" }}
           >
             {table?.name}
           </h1>
 
           {/* Table code card */}
-          <div className="flex-shrink-0 tw-card tw-card-pad">
+          <div
+            className="flex-shrink-0 rounded-xl border px-4 py-3"
+            style={{
+              borderColor: "var(--tw-border)",
+              background: "rgba(255,255,255,0.03)",
+            }}
+          >
             <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--tw-text-muted)" }}>
               Table Code
             </div>
             <div className="mt-1 flex items-center gap-3">
-              <div className="text-xl font-extrabold tracking-wider" style={{ color: "var(--tw-accent)" }}>
+              <div className="text-2xl font-extrabold tracking-widest" style={{ color: "var(--tw-accent)", fontFamily: "var(--tw-font-heading)" }}>
                 {table?.code || "-----"}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={copyRoomCode}
                   disabled={!table?.code}
-                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text)" }}
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text-muted)" }}
                   title="Copy join link"
                 >
                   <IconCopy />
@@ -860,22 +880,17 @@ export default function GmDashboard() {
                   type="button"
                   onClick={nativeShare}
                   disabled={!shareUrl}
-                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text)" }}
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text-muted)" }}
                   title="Share"
                 >
                   <IconShare />
                 </button>
               </div>
             </div>
-            {copiedCode && (
-              <div className="mt-2 text-xs font-semibold" style={{ color: "var(--tw-text-muted)" }}>
-                Copied room code!
-              </div>
-            )}
-            {copiedLink && (
-              <div className="mt-2 text-xs font-semibold" style={{ color: "var(--tw-text-muted)" }}>
-                Copied share link!
+            {(copiedCode || copiedLink) && (
+              <div className="mt-1.5 text-xs font-semibold" style={{ color: "#B79E81" }}>
+                {copiedCode ? "Copied room code!" : "Copied share link!"}
               </div>
             )}
           </div>
@@ -883,61 +898,93 @@ export default function GmDashboard() {
 
         {/* Errors */}
         {error && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+          <div
+            className="mt-5 rounded-xl border px-4 py-3 text-sm font-medium"
+            style={{
+              borderColor: "rgba(139,32,32,0.5)",
+              background: "rgba(80,10,10,0.55)",
+              color: "#f5a0a0",
+            }}
+          >
             {error}
           </div>
         )}
 
         {/* Expiry warning */}
         {showExpiryWarning && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <div className="text-sm font-extrabold text-amber-900">
+          <div
+            className="mt-5 rounded-xl border px-4 py-3"
+            style={{
+              borderColor: "rgba(180,120,20,0.4)",
+              background: "rgba(80,50,5,0.55)",
+            }}
+          >
+            <div className="text-sm font-extrabold" style={{ color: "#e8c46a" }}>
               Session ending soon
             </div>
-            <div className="mt-1 text-sm text-amber-900/80">
+            <div className="mt-0.5 text-sm" style={{ color: "#c4a050" }}>
               This session will automatically end in about{" "}
               {Math.ceil(msLeft / 60000)} minutes.
             </div>
           </div>
         )}
 
-        <div className="mt-10 space-y-6">
+        <div className="mt-8 space-y-5">
           {/* Players strip */}
-          <div className="tw-card-pad">
-            <div className="flex flex-wrap items-center gap-4">
-              <div
-                className="text-sm font-semibold"
-                style={{ color: "#D5CDBE" }}
-              >
-                {playerCount} {playerCount === 1 ? "Player:" : "Players:"}
-              </div>
+          <div
+            className="rounded-xl border px-5 py-4"
+            style={{
+              borderColor: "var(--tw-border)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            <SectionLabel>
+              {playerCount} {playerCount === 1 ? "Player at the Table" : "Players at the Table"}
+            </SectionLabel>
 
-              <div className="flex -space-x-2">
-                {playerChips.map((p) => (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {playerChips.length === 0 ? (
+                <span className="text-sm" style={{ color: "var(--tw-text-muted)" }}>
+                  Waiting for players to join...
+                </span>
+              ) : (
+                playerChips.map((p) => (
                   <div
                     key={p.id}
-                    className="h-9 w-9 overflow-hidden rounded-full shadow-sm"
-                    style={{ border: "2px solid #6A7984" }}
+                    className="flex items-center gap-2 rounded-full border pr-3"
+                    style={{
+                      borderColor: "rgba(151,130,98,0.3)",
+                      background: "rgba(255,255,255,0.04)",
+                    }}
                     title={p.name}
                   >
-                    {p.avatarUrl ? (
-                      <img
-                        src={p.avatarUrl}
-                        alt={p.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs font-extrabold text-gray-700">
-                        {p.initials || "?"}
-                      </div>
-                    )}
+                    <div
+                      className="h-8 w-8 overflow-hidden rounded-full flex-shrink-0"
+                      style={{ border: "1.5px solid rgba(151,130,98,0.5)" }}
+                    >
+                      {p.avatarUrl ? (
+                        <img
+                          src={p.avatarUrl}
+                          alt={p.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="flex h-full w-full items-center justify-center text-xs font-extrabold"
+                          style={{ color: "var(--tw-text-muted)", background: "rgba(255,255,255,0.06)" }}
+                        >
+                          {p.initials || "?"}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm" style={{ color: "var(--tw-text)" }}>
+                      {p.name}
+                    </span>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
 
-            {/* Keep your existing PlayerGrid for now, hidden from layout.
-                You can remove this later once you fully replace PlayerGrid UI. */}
             <div className="hidden">
               <PlayerGrid
                 tableLoaded={!!table}
@@ -947,13 +994,19 @@ export default function GmDashboard() {
             </div>
           </div>
 
-          {/* Send a Message card (MessageComposer lives inside) */}
-          <div className="tw-card tw-card-pad !mt-2">
-            <h2 className="text-center">
+          {/* Send a Message card */}
+          <div
+            className="rounded-xl border px-5 py-5"
+            style={{
+              borderColor: "var(--tw-border)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: 0, textAlign: "center" }}>
               Send a Message
             </h2>
 
-            <div className="mt-4">
+            <div className="mt-5">
               <MessageComposer
                 players={players}
                 draft={draft}
@@ -978,17 +1031,23 @@ export default function GmDashboard() {
             </div>
           </div>
 
-          {/* Drafted Messages accordion bar */}
-          <div className="tw-card tw-card-pad">
+          {/* Drafted Messages accordion */}
+          <div
+            className="rounded-xl border"
+            style={{
+              borderColor: "var(--tw-border)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
             <button
               type="button"
               onClick={() => setDraftsOpen((v) => !v)}
               className="flex w-full items-center justify-between gap-4 px-5 py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="text-base font-extrabold" style={{ color: "#B79E81" }}>
+                <h2 style={{ margin: 0, fontSize: "1.45rem" }}>
                   Drafted Messages
-                </div>
+                </h2>
                 <div
                   className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-semibold"
                   style={{
@@ -1002,8 +1061,8 @@ export default function GmDashboard() {
               </div>
 
               <div
-                className={`transition ${draftsOpen ? "rotate-180" : ""}`}
-                style={{ color: "var(--tw-text-muted)" }}
+                className={`transition-transform ${draftsOpen ? "rotate-180" : ""}`}
+                style={{ color: "var(--tw-text-muted)", flexShrink: 0 }}
                 aria-hidden="true"
               >
                 <svg
@@ -1025,10 +1084,7 @@ export default function GmDashboard() {
                 style={{ borderColor: "var(--tw-border)" }}
               >
                 {draftItems.length === 0 ? (
-                  <p
-                    className="text-sm"
-                    style={{ color: "var(--tw-text-muted)" }}
-                  >
+                  <p className="text-sm" style={{ color: "var(--tw-text-muted)" }}>
                     No drafts yet.
                   </p>
                 ) : (
@@ -1036,7 +1092,7 @@ export default function GmDashboard() {
                     {draftItems.map((d) => (
                       <div
                         key={d.id}
-                        className="grid cursor-pointer grid-cols-[1fr_auto] items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-[1px] hover:shadow-lg"
+                        className="grid cursor-pointer grid-cols-[1fr_auto] items-start gap-3 rounded-xl border p-4 transition hover:-translate-y-[1px] hover:shadow-lg"
                         style={{
                           borderColor: "var(--tw-border)",
                           background: "rgba(255,255,255,0.03)",
@@ -1078,7 +1134,6 @@ export default function GmDashboard() {
                         </button>
 
                         <div className="flex items-center justify-end gap-2">
-                          {/* Send button */}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1091,7 +1146,6 @@ export default function GmDashboard() {
                           >
                             <Send size={16} color="#fff" />
                           </button>
-                          {/* Delete button */}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1113,9 +1167,15 @@ export default function GmDashboard() {
             )}
           </div>
 
-          {/* Message Log card */}
-          <div className="tw-card-pad">
-            <h2>Message Log</h2>
+          {/* Message Log */}
+          <div
+            className="rounded-xl border px-5 py-5"
+            style={{
+              borderColor: "var(--tw-border)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: 0 }}>Message Log</h2>
             <div className="mt-4">
               <MessageLog items={logItems} />
             </div>

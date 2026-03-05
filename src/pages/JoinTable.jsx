@@ -257,6 +257,7 @@ export default function JoinTable() {
                         key={k}
                         type="button"
                         onClick={() => { setAvatarKey(k); setPickerOpen(false); }}
+                        className="avatar-thumb"
                         style={{
                           ...styles.thumbBtn,
                           ...(k === avatarKey ? styles.thumbBtnSelected : {}),
@@ -526,23 +527,25 @@ const styles = {
   },
 
   thumbBtn: {
-    border: "1px solid rgba(255,255,255,0.06)",
+    width: 64,
+    height: 64,
+    padding: 0,
+    border: "none",
     background: "rgba(255,255,255,0.02)",
     cursor: "pointer",
-    padding: 6,
-    transition: "transform 0.12s ease, border-color 0.12s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   thumbBtnSelected: {
-    border: "2px solid #978262",
-    background: "rgba(155, 127, 63, 0.18)",
+    boxShadow: "0 0 0 3px #978262, 0 0 16px rgba(151, 127, 63, 0.4)",
     transform: "scale(1.06)",
   },
 
   thumbImg: {
-    width: 52,
-    height: 52,
-    borderRadius: "50%",
+    width: "100%",
+    height: "100%",
     display: "block",
     objectFit: "cover",
   },

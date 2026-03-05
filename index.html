@@ -13,12 +13,8 @@
     />
   </head>
   <body>
-    <!-- Full-screen background layer. Uses a real <img> rather than CSS background-image
-         because WebKit clips background-image paint to the safe area content zone even on
-         fixed elements, whereas actual element content renders to the physical screen edges. -->
-    <div id="page-bg" aria-hidden="true">
-      <img id="page-bg-img" alt="">
-    </div>
+    <!-- Vignette overlay — background texture is on body, this just adds the radial gradient. -->
+    <div id="page-bg" aria-hidden="true"></div>
     <!-- SVG filter definitions (not rendered) -->
     <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
       <defs>

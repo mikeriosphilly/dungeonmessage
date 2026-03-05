@@ -58,44 +58,29 @@ body {
   margin: 0;
   min-width: 320px;
   color: var(--tw-text);
-  /* Needed so #page-bg (position:absolute) is contained within body,
-     which is in layout flow and reaches the physical screen edges. */
   position: relative;
-  /* Extend body into the bottom safe area so the background fills it
-     instead of showing the bare html canvas color. */
+  /* Extend body into the bottom safe area so the background fills it. */
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
-}
-
-/* Full-screen background layer.
-   position:absolute (not fixed) keeps it in layout flow so it reaches the
-   physical screen edges including iOS safe areas. position:fixed is positioned
-   relative to the visual viewport which excludes safe areas on iOS Safari. */
-#page-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
+  /* Fallback color in case the background image is still loading. */
   background-color: #1c1a17;
 }
 
-/* The actual texture — a real <img> element rather than CSS background-image.
-   WebKit clips background-image paint to the safe area content zone even on
-   position:fixed elements; <img> content renders to the physical screen edges. */
-#page-bg img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Background texture is applied via inline JS on body (see main.jsx / page useEffects).
+   Inline styles cannot be overridden by any stylesheet, including Tailwind.
+   background-repeat and background-size are set here as CSS since they don't
+   need to change per-page and inline backgroundImage alone triggers them. */
+body {
+  background-repeat: repeat;
+  background-size: 960px auto;
 }
 
-/* Vignette overlay on top of the texture */
-#page-bg::after {
-  content: '';
-  position: absolute;
+/* Vignette overlay — sits above body background, below page content. */
+#page-bg {
+  position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 100%);
+  z-index: 0;
   pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 100%);
 }
 
 #root {
@@ -169,6 +154,17 @@ h3, h4, h5, h6 {
   border-top: none;
   border-left: none;
   transform: rotate(45deg);
+}
+
+/* Avatar picker grid thumbnails */
+.avatar-thumb {
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.avatar-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px rgba(151, 130, 98, 0.55), 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* Links: keep minimal, Tailwind can override per-component */
