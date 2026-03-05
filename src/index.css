@@ -47,18 +47,10 @@ body {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  min-width: 320px;
+html {
+  /* html background paints to the canvas — covers the full screen on iOS
+     including safe areas behind the status bar and home indicator */
   background-color: #1c1a17;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
   background-image:
     radial-gradient(
       ellipse at center,
@@ -71,6 +63,9 @@ body::before {
   background-position: center, top left;
 }
 
+body {
+  margin: 0;
+  min-width: 320px;
   color: var(--tw-text);
 }
 
