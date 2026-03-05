@@ -51,9 +51,14 @@ html,
 body {
   margin: 0;
   min-width: 320px;
-
   background-color: #1c1a17;
+}
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background-image:
     radial-gradient(
       ellipse at center,
@@ -61,13 +66,10 @@ body {
       rgba(0, 0, 0, 0.25) 100%
     ),
     url("./assets/bg_wood.jpg");
-
   background-repeat: no-repeat, repeat;
   background-size: cover, auto;
-  background-position:
-    center,
-    top left;
-  background-attachment: scroll, scroll;
+  background-position: center, top left;
+}
 
   color: var(--tw-text);
 }
