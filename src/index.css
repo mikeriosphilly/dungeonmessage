@@ -48,8 +48,25 @@ body {
 }
 
 html {
-  /* html background paints to the canvas — covers the full screen on iOS
-     including safe areas behind the status bar and home indicator */
+  /* Fallback color for before #page-bg renders, and for any gaps */
+  background-color: #1c1a17;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--tw-text);
+}
+
+/* Real DOM element — unlike CSS backgrounds, a fixed element with negative
+   env() insets physically extends into iOS safe areas (status bar, home indicator) */
+#page-bg {
+  position: fixed;
+  top: calc(-1 * env(safe-area-inset-top, 0px));
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  z-index: -1;
   background-color: #1c1a17;
   background-image:
     radial-gradient(
@@ -61,12 +78,6 @@ html {
   background-repeat: no-repeat, repeat;
   background-size: cover, auto;
   background-position: center, top left;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  color: var(--tw-text);
 }
 
 /* Optional: sensible default font, still compatible with Tailwind */
