@@ -62,10 +62,11 @@ function IconShare(props) {
 
 export default function GmDashboard() {
   useEffect(() => {
-    const prev = document.body.style.backgroundImage;
-    document.body.style.backgroundImage =
-      `radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("${bgPaper}")`;
-    return () => { document.body.style.backgroundImage = prev; };
+    const el = document.getElementById("page-bg-img");
+    if (!el) return;
+    const prev = el.src;
+    el.src = bgPaper;
+    return () => { el.src = prev; };
   }, []);
 
   const [sendingDraftId, setSendingDraftId] = useState(null);
