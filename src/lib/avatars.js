@@ -1,10 +1,11 @@
-import a01 from "../assets/avatars/01_Avatar.png";
-import a02 from "../assets/avatars/02_Avatar.png";
-import a03 from "../assets/avatars/03_Avatar.png";
-import a04 from "../assets/avatars/04_Avatar.png";
-import a05 from "../assets/avatars/05_Avatar.png";
-import a06 from "../assets/avatars/06_Avatar.png";
-import a07 from "../assets/avatars/07_Avatar.png";
+import a01 from "../assets/avatars/Avatar-01.svg";
+import a02 from "../assets/avatars/Avatar-02.svg";
+import a03 from "../assets/avatars/Avatar-03.svg";
+import a04 from "../assets/avatars/Avatar-04.svg";
+import a05 from "../assets/avatars/Avatar-05.svg";
+import a06 from "../assets/avatars/Avatar-06.svg";
+import a07 from "../assets/avatars/Avatar-07.svg";
+import a08 from "../assets/avatars/Avatar-08.svg";
 
 export const AVATARS = [
   { key: "01", src: a01 },
@@ -14,6 +15,7 @@ export const AVATARS = [
   { key: "05", src: a05 },
   { key: "06", src: a06 },
   { key: "07", src: a07 },
+  { key: "08", src: a08 },
 ];
 
 export const AVATAR_KEYS = AVATARS.map((a) => a.key);
