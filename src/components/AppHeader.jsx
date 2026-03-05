@@ -57,11 +57,11 @@ const s = {
   },
 
   row: {
-    height: 52,
+    height: 58,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 16px",
+    padding: "0 20px",
   },
 
   brand: {
@@ -74,8 +74,8 @@ const s = {
   },
 
   logo: {
-    width: 30,
-    height: 30,
+    width: 36,
+    height: 36,
     objectFit: "contain",
     flexShrink: 0,
     filter: "drop-shadow(0 1px 5px rgba(245,220,140,0.25))",
@@ -83,7 +83,7 @@ const s = {
 
   wordmark: {
     fontFamily: "var(--tw-font-heading)",
-    fontSize: "1.18rem",
+    fontSize: "1.45rem",
     color: "#F5ECCD",
     letterSpacing: "0.04em",
     lineHeight: 1,
@@ -92,14 +92,14 @@ const s = {
 
   avatarWrap: {
     position: "relative",
-    width: 36,
-    height: 36,
+    width: 42,
+    height: 42,
     flexShrink: 0,
   },
 
   avatarImg: {
-    width: 36,
-    height: 36,
+    width: 42,
+    height: 42,
     borderRadius: "50%",
     objectFit: "cover",
     border: "2px solid rgba(151, 130, 98, 0.6)",
@@ -110,8 +110,8 @@ const s = {
     position: "absolute",
     bottom: 0,
     right: 0,
-    width: 10,
-    height: 10,
+    width: 11,
+    height: 11,
     borderRadius: "50%",
     display: "block",
   },

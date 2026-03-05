@@ -61,6 +61,9 @@ body {
   /* Needed so #page-bg (position:absolute) is contained within body,
      which is in layout flow and reaches the physical screen edges. */
   position: relative;
+  /* Extend body into the bottom safe area so the background fills it
+     instead of showing the bare html canvas color. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Full-screen background layer.
