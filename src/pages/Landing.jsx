@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
+import AppHeader from "../components/AppHeader";
 
 export default function Landing() {
   return (
-    <div style={styles.wrap}>
+    <div style={styles.page}>
+      <AppHeader />
+      <div style={styles.wrap}>
       <div style={styles.inner}>
         {/* Logo — drops in with warm glow */}
         <img
@@ -66,13 +69,20 @@ export default function Landing() {
           </Link>
         </div>
       </div>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  wrap: {
+  page: {
+    display: "flex",
+    flexDirection: "column",
     minHeight: "100vh",
+  },
+
+  wrap: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

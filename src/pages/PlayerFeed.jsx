@@ -10,6 +10,7 @@ import { avatarSrcFromKey } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import bgPaper from "../assets/bg_paper.jpg";
 import envelopeImg from "../assets/envelope.png";
+import AppHeader from "../components/AppHeader";
 
 function MagicText({ text }) {
   const chars = useMemo(() => {
@@ -344,8 +345,15 @@ export default function PlayerFeed() {
 
   const titleText = table?.name || "Player Feed";
 
+  const isConnected = !!player && !error;
+
   return (
-    <div style={styles.wrap}>
+    <div style={styles.page}>
+      <AppHeader
+        avatarSrc={player ? avatarSrcFromKey(player.avatar_key) : null}
+        connected={isConnected}
+      />
+      <div style={styles.wrap}>
       {expired && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
@@ -361,35 +369,18 @@ export default function PlayerFeed() {
           </div>
         </div>
       )}
-      {/* Top gradient card (header/profile/errors) */}
+      {/* Page header card */}
       <div style={styles.card}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Link to="/" style={{ flexShrink: 0 }}>
-            <img
-              src="/Logo_TableWhisper.png"
-              alt="TableWhisper"
-              style={{ height: 80, width: "auto" }}
-            />
-          </Link>
-          <h1 style={styles.title}>{titleText}</h1>
-        </div>
+        <h1 style={styles.title}>{titleText}</h1>
+
+        {player && (
+          <p style={styles.playingAs}>
+            Playing as <strong style={{ color: "var(--tw-text)" }}>{player.display_name}</strong>
+          </p>
+        )}
 
         {(loadingTable || loadingPlayer) && (
           <p style={styles.muted}>Loading...</p>
-        )}
-
-        {player && (
-          <div style={styles.playerHeader}>
-            <img
-              src={avatarSrcFromKey(player.avatar_key)}
-              alt=""
-              style={styles.avatar}
-            />
-            <div>
-              <div style={styles.playerName}>{player.display_name}</div>
-              <div style={styles.muted}>You are connected.</div>
-            </div>
-          </div>
         )}
 
         {error && !expired && <p style={styles.error}>{error}</p>}
@@ -469,13 +460,20 @@ export default function PlayerFeed() {
           })
         )}
       </div>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  wrap: {
+  page: {
+    display: "flex",
+    flexDirection: "column",
     minHeight: "100vh",
+  },
+
+  wrap: {
+    flex: 1,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -530,6 +528,13 @@ const styles = {
     fontSize: 18,
     fontWeight: 800,
     color: "var(--tw-text)",
+  },
+
+  playingAs: {
+    margin: "6px 0 0",
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.85rem",
+    color: "var(--tw-text-muted)",
   },
 
   muted: { margin: 0, color: "var(--tw-text-muted)" },

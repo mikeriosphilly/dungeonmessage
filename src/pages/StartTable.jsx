@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { startTable } from "../services/backend";
+import AppHeader from "../components/AppHeader";
 
 export default function StartTable() {
   const [name, setName] = useState("");
@@ -24,17 +25,10 @@ export default function StartTable() {
   }
 
   return (
-    <div style={styles.wrap}>
+    <div style={styles.page}>
+      <AppHeader />
+      <div style={styles.wrap}>
       <div style={styles.inner}>
-
-        {/* Logo — links home */}
-        <Link to="/" style={{ display: "block", marginBottom: 8 }} className="landing-fade-up" tabIndex={-1}>
-          <img
-            src="/Logo_TableWhisper.png"
-            alt="TableWhisper — home"
-            style={styles.logo}
-          />
-        </Link>
 
         <h1
           className="landing-fade-up"
@@ -95,13 +89,20 @@ export default function StartTable() {
         </Link>
 
       </div>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  wrap: {
+  page: {
+    display: "flex",
+    flexDirection: "column",
     minHeight: "100vh",
+  },
+
+  wrap: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

@@ -8,6 +8,7 @@ import MessageComposer from "../components/gm/MessageComposer";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { Send, Trash2 } from "lucide-react";
 import bgPaper from "../assets/bg_paper.jpg";
+import AppHeader from "../components/AppHeader";
 
 const BUCKET = "message-images";
 
@@ -809,6 +810,7 @@ export default function GmDashboard() {
 
   return (
     <div className="min-h-screen">
+      <AppHeader connected={!!table} />
       {expired && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
@@ -825,26 +827,14 @@ export default function GmDashboard() {
         </div>
       )}
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {/* Logo + session name + table code */}
+        {/* Session name + table code */}
         <div className="flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4 min-w-0">
-            <Link to="/" className="flex-shrink-0">
-              <img
-                src="/Logo_TableWhisper.png"
-                alt="TableWhisper"
-                className="h-20 w-auto"
-              />
-            </Link>
-            <h1
-              className="tw-arcane text-5xl font-extrabold tracking-wide"
-              style={{
-                fontFamily: "var(--tw-font-heading)",
-                textShadow: "0 2px 10px rgba(0,0,0,0.4)",
-              }}
-            >
-              {table?.name}
-            </h1>
-          </div>
+          <h1
+            className="tw-arcane min-w-0 truncate text-4xl font-extrabold tracking-wide"
+            style={{ fontFamily: "var(--tw-font-heading)" }}
+          >
+            {table?.name}
+          </h1>
 
           {/* Table code card */}
           <div className="flex-shrink-0 tw-card tw-card-pad">

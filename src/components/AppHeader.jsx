@@ -1,30 +1,118 @@
-import logo from "/Logo_TableWhisper.png";
+import { Link } from "react-router-dom";
 
-export default function AppHeader() {
+/**
+ * AppHeader — sticky site-wide header.
+ *
+ * Props:
+ *   avatarSrc  – optional image URL for the player/GM avatar (right slot)
+ *   connected  – boolean; shows green dot when true, red when false (default true)
+ *
+ * paddingTop: env(safe-area-inset-top) makes the header background fill the iOS
+ * status-bar region, replacing the plain dark canvas strip with the header chrome.
+ */
+export default function AppHeader({ avatarSrc = null, connected = true }) {
   return (
-    <header
-      className="sticky top-0 z-50 w-full border-b"
-      style={{
-        background: "var(--tw-header)",
-        borderColor: "var(--tw-border)",
-      }}
-    >
-      <div className="mx-auto flex max-w-6xl items-center justify-center px-6 py-4">
-        <div className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="TableWhisper logo"
-            className="h-9 w-9 rounded-xl"
-            style={{
-              boxShadow: "var(--tw-shadow)",
-            }}
-          />
+    <header style={s.root}>
+      <div style={s.row}>
 
-          <div className="text-base font-extrabold tracking-wide text-white">
-            TABLEWHISPER
+        {/* Left: seal logo + wordmark */}
+        <Link to="/" style={s.brand}>
+          <img src="/Logo_TableWhisper.png" alt="" style={s.logo} />
+          <span style={s.wordmark}>TableWhisper</span>
+        </Link>
+
+        {/* Right: avatar + status dot */}
+        {avatarSrc && (
+          <div style={s.avatarWrap}>
+            <img src={avatarSrc} alt="Your avatar" style={s.avatarImg} />
+            <span
+              style={{
+                ...s.dot,
+                background: connected ? "#4ade80" : "#f87171",
+                boxShadow: connected
+                  ? "0 0 0 2px #0a0907, 0 0 6px rgba(74,222,128,0.45)"
+                  : "0 0 0 2px #0a0907",
+              }}
+              className={connected ? "tw-dot-pulse" : undefined}
+            />
           </div>
-        </div>
+        )}
       </div>
     </header>
   );
 }
+
+const s = {
+  root: {
+    position: "sticky",
+    top: 0,
+    zIndex: 50,
+    width: "100%",
+    paddingTop: "env(safe-area-inset-top, 0px)",
+    background: "rgba(10, 9, 7, 0.90)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    borderBottom: "1px solid rgba(151, 130, 98, 0.28)",
+    boxShadow: "0 2px 16px rgba(0,0,0,0.45)",
+  },
+
+  row: {
+    height: 52,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 16px",
+  },
+
+  brand: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    textDecoration: "none",
+    color: "inherit",
+    userSelect: "none",
+  },
+
+  logo: {
+    width: 30,
+    height: 30,
+    objectFit: "contain",
+    flexShrink: 0,
+    filter: "drop-shadow(0 1px 5px rgba(245,220,140,0.25))",
+  },
+
+  wordmark: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.18rem",
+    color: "#F5ECCD",
+    letterSpacing: "0.04em",
+    lineHeight: 1,
+    textShadow: "0 1px 10px rgba(245,220,140,0.14)",
+  },
+
+  avatarWrap: {
+    position: "relative",
+    width: 36,
+    height: 36,
+    flexShrink: 0,
+  },
+
+  avatarImg: {
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid rgba(151, 130, 98, 0.6)",
+    display: "block",
+  },
+
+  dot: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    display: "block",
+  },
+};

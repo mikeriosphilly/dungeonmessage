@@ -239,6 +239,15 @@ select {
   width: auto;
 }
 
+/* Status dot pulse (AppHeader connected indicator) */
+@keyframes tw-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #0a0907, 0 0 0 0 rgba(74, 222, 128, 0); }
+  50%       { box-shadow: 0 0 0 2px #0a0907, 0 0 0 4px rgba(74, 222, 128, 0.25); }
+}
+.tw-dot-pulse {
+  animation: tw-dot-pulse 2.5s ease-in-out infinite;
+}
+
 @keyframes tw-slide-in {
   from {
     opacity: 0;

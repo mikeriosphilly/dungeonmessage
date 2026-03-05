@@ -4,6 +4,7 @@ import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import { supabase } from "../lib/supabaseClient";
+import AppHeader from "../components/AppHeader";
 
 const GM_INACTIVITY_HOURS = 6;
 
@@ -160,17 +161,10 @@ export default function JoinTable() {
   }
 
   return (
-    <div style={styles.wrap}>
+    <div style={styles.page}>
+      <AppHeader />
+      <div style={styles.wrap}>
       <div style={styles.inner}>
-
-        {/* Logo */}
-        <Link to="/" style={{ display: "block", marginBottom: 8 }} className="landing-fade-up" tabIndex={-1}>
-          <img
-            src="/Logo_TableWhisper.png"
-            alt="TableWhisper — home"
-            style={styles.logo}
-          />
-        </Link>
 
         <h1
           className="landing-fade-up"
@@ -317,13 +311,20 @@ export default function JoinTable() {
         </Link>
 
       </div>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  wrap: {
+  page: {
+    display: "flex",
+    flexDirection: "column",
     minHeight: "100vh",
+  },
+
+  wrap: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
