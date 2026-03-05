@@ -58,11 +58,17 @@ body {
   margin: 0;
   min-width: 320px;
   color: var(--tw-text);
+  /* Needed so #page-bg (position:absolute) is contained within body,
+     which is in layout flow and reaches the physical screen edges. */
+  position: relative;
 }
 
-/* Full-screen background layer. #page-bg is z-index 0; #root is z-index 1 above it. */
+/* Full-screen background layer.
+   position:absolute (not fixed) keeps it in layout flow so it reaches the
+   physical screen edges including iOS safe areas. position:fixed is positioned
+   relative to the visual viewport which excludes safe areas on iOS Safari. */
 #page-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
