@@ -63,7 +63,7 @@ body {
   position: relative;
   /* Extend body into the bottom safe area so the background fills it
      instead of showing the bare html canvas color. */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
 }
 
 /* Full-screen background layer.
