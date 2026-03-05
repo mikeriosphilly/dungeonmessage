@@ -764,7 +764,7 @@ export default function GmDashboard() {
       try {
         await navigator.share({
           title: "Join TableWhisper",
-          text: "Join my table:",
+          text: table?.name ? `Join my table: ${table.name}!` : "Join my table!",
           url: shareUrl,
         });
         return;
