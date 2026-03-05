@@ -49,7 +49,7 @@ const s = {
     zIndex: 50,
     width: "100%",
     paddingTop: "env(safe-area-inset-top, 0px)",
-    background: "rgba(10, 9, 7, 0.90)",
+    background: "#0a0907",
     backdropFilter: "blur(14px) saturate(140%)",
     WebkitBackdropFilter: "blur(14px) saturate(140%)",
     borderBottom: "1px solid rgba(151, 130, 98, 0.28)",
