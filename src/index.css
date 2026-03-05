@@ -61,8 +61,10 @@ body {
   position: relative;
   /* Extend body into the bottom safe area so the background fills it. */
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
-  /* Fallback color in case the background image is still loading. */
-  background-color: #1c1a17;
+  /* Fallback color + iOS status bar safe area color.
+     Must match AppHeader background (#0a0907) so the strip behind
+     the status bar icons blends with the header. */
+  background-color: #0a0907;
 }
 
 /* Background texture is applied via inline JS on body (see main.jsx / page useEffects).
