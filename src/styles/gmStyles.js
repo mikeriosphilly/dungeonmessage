@@ -152,8 +152,8 @@ export const gmStyles = {
   },
   sectionTitle: {
     margin: "0 0 10px 0",
-    fontSize: 18,
-    color: theme.colors.text,
+    fontSize: "1.75rem",
+    color: "#F5ECCD",
   },
 
   muted: { margin: 0, color: theme.colors.muted },
@@ -216,7 +216,7 @@ export const gmStyles = {
     padding: 12,
     borderRadius: 14,
     border: `1px solid ${theme.colors.border}`,
-    background: "#fff",
+    background: "transparent",
   },
   avatar: {
     width: 40,

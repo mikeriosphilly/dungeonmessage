@@ -30,12 +30,12 @@ export default function MessageComposer({
   return (
     <div className="mt-4">
       {/* Send to everyone */}
-      <label className="mt-3 flex select-none items-center gap-3 text-sm font-semibold text-white">
+      <label className="mt-3 flex select-none items-center gap-3 text-sm font-semibold" style={{ color: "#D5CDBE" }}>
         <input
           type="checkbox"
           checked={sendToEveryone}
           onChange={(e) => setSendToEveryone(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+          className="tw-checkbox"
         />
         <span>Send to everyone</span>
       </label>
@@ -100,11 +100,8 @@ export default function MessageComposer({
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Type your secret message here..."
           rows={6}
-          className="mt-2 w-full resize-y rounded-2xl border px-4 py-3 text-sm text-white outline-none placeholder:text-[var(--tw-text-muted)] focus:ring-0"
-          style={{
-            borderColor: "var(--tw-border)",
-            background: "rgba(255,255,255,0.04)",
-          }}
+          className="mt-2 w-full resize-y rounded-2xl border px-4 py-3 text-sm outline-none placeholder:text-[var(--tw-text-muted)] focus:ring-0"
+          style={{ color: "#D5CDBE", borderColor: "#6A7984", background: "#0D1013", fontFamily: "var(--tw-font-message)" }}
         />
       </div>
 
@@ -185,7 +182,9 @@ export default function MessageComposer({
           disabled={sendDisabled}
           className="w-full cursor-pointer rounded-2xl px-4 py-3 text-sm font-semibold text-white transition hover:shadow-lg hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 md:w-1/3"
           style={{
-            background: "var(--tw-accent)",
+            background: "#434135",
+            border: "1px solid #978262",
+            boxShadow: "inset 0 0 15px 1px rgba(155, 127, 63, 0.85)",
           }}
           title="Send message"
         >

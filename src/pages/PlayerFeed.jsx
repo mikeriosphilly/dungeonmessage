@@ -9,7 +9,42 @@ import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 
+function MagicText({ text }) {
+  const chars = useMemo(() => {
+    const total = text.length;
+    return text.split("").map((char, i) => ({
+      char,
+      delay: (i / total) * 1.8,
+    }));
+  }, [text]);
+
+  return (
+    <>
+      {chars.map(({ char, delay }, i) =>
+        char === "\n" ? (
+          <br key={i} />
+        ) : (
+          <span
+            key={i}
+            className="tw-magic-char"
+            style={{ animationDelay: `${delay.toFixed(3)}s` }}
+          >
+            {char}
+          </span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function PlayerFeed() {
+  useEffect(() => {
+    const prev = document.body.style.backgroundImage;
+    document.body.style.backgroundImage =
+      'radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("/src/assets/bg_paper.jpg")';
+    return () => { document.body.style.backgroundImage = prev; };
+  }, []);
+
   const { code } = useParams();
   const [params] = useSearchParams();
 
@@ -17,6 +52,23 @@ export default function PlayerFeed() {
   const urlPlayerId = params.get("playerId");
 
   const storageKey = useMemo(() => `tw_playerId:${tableCode}`, [tableCode]);
+  const openedStorageKey = useMemo(() => `tw_opened:${tableCode}`, [tableCode]);
+
+  const getOpenedIds = useCallback(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(openedStorageKey) || "[]"));
+    } catch {
+      return new Set();
+    }
+  }, [openedStorageKey]);
+
+  const persistOpenedId = useCallback((id) => {
+    try {
+      const opened = getOpenedIds();
+      opened.add(id);
+      localStorage.setItem(openedStorageKey, JSON.stringify([...opened]));
+    } catch {}
+  }, [openedStorageKey, getOpenedIds]);
 
   const storedPlayerId = useMemo(() => {
     return urlPlayerId || localStorage.getItem(storageKey);
@@ -37,6 +89,12 @@ export default function PlayerFeed() {
   const navigate = useNavigate();
 
   const prevMessageIds = useRef(new Set());
+  const initialLoadDone = useRef(false);
+
+  // envelope animation state
+  const [sealedIds, setSealedIds] = useState(() => new Set());
+  const [openingIds, setOpeningIds] = useState(() => new Set());
+  const [justOpenedIds, setJustOpenedIds] = useState(() => new Set());
 
   // Redirect to home if table is expired
   useEffect(() => {
@@ -199,10 +257,38 @@ export default function PlayerFeed() {
     };
   }, [storedPlayerId, refreshInbox]);
 
-  // Track previously seen message IDs (for enter animations)
+  // Track message IDs; seal unread messages (skip already-opened ones)
   useEffect(() => {
-    prevMessageIds.current = new Set(messages.map((m) => m.id));
-  }, [messages]);
+    const currentIds = new Set(messages.map((m) => m.id));
+    const openedIds = getOpenedIds();
+
+    if (initialLoadDone.current) {
+      // Realtime arrivals: new messages not previously seen or opened
+      const newIds = messages
+        .map((m) => m.id)
+        .filter((id) => !prevMessageIds.current.has(id) && !openedIds.has(id));
+      if (newIds.length > 0) {
+        setSealedIds((prev) => new Set([...prev, ...newIds]));
+      }
+    } else {
+      // Initial load: seal messages the player hasn't opened yet
+      const unsealed = messages.map((m) => m.id).filter((id) => !openedIds.has(id));
+      if (unsealed.length > 0) setSealedIds(new Set(unsealed));
+      initialLoadDone.current = true;
+    }
+
+    prevMessageIds.current = currentIds;
+  }, [messages, getOpenedIds]);
+
+  const openEnvelope = useCallback((id) => {
+    persistOpenedId(id);
+    setOpeningIds((prev) => new Set([...prev, id]));
+    setTimeout(() => {
+      setSealedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+      setOpeningIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+      setJustOpenedIds((prev) => new Set([...prev, id]));
+    }, 450);
+  }, [persistOpenedId]);
 
   // Realtime: when a message is inserted or updated for this table, refresh inbox
   useEffect(() => {
@@ -274,13 +360,14 @@ export default function PlayerFeed() {
       )}
       {/* Top gradient card (header/profile/errors) */}
       <div style={styles.card}>
-        <Link to="/" style={styles.back}>
-          ← Home
-        </Link>
-
-        <div
-          style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Link to="/" style={{ flexShrink: 0 }}>
+            <img
+              src="/Logo_TableWhisper.png"
+              alt="TableWhisper"
+              style={{ height: 80, width: "auto" }}
+            />
+          </Link>
           <h1 style={styles.title}>{titleText}</h1>
         </div>
 
@@ -317,12 +404,34 @@ export default function PlayerFeed() {
           <p style={styles.muted}>Waiting for messages...</p>
         ) : (
           messages.map((m) => {
-            const isNew = !prevMessageIds.current.has(m.id);
+            const isSealed = sealedIds.has(m.id);
+            const isOpening = openingIds.has(m.id);
+            const justOpened = justOpenedIds.has(m.id);
+
+            if (isSealed) {
+              return (
+                <div
+                  key={m.id}
+                  className={isOpening ? "tw-envelope-exit" : "tw-envelope-enter"}
+                  style={styles.envelopeWrap}
+                  onClick={isOpening ? undefined : () => openEnvelope(m.id)}
+                >
+                  <img
+                    src="/src/assets/envelope.png"
+                    alt="New message — tap to open"
+                    style={styles.envelopeImg}
+                  />
+                  <div className="tw-envelope-label" style={styles.envelopeLabel}>
+                    Tap to reveal<br />secret message
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div
                 key={m.id}
-                className={isNew ? "tw-msg-enter" : ""}
+                className={`tw-parchment-card${justOpened ? " tw-msg-enter" : ""}`}
                 style={styles.msgCard}
               >
                 <div style={styles.msgMeta}>
@@ -342,7 +451,9 @@ export default function PlayerFeed() {
                 )}
 
                 {m.body ? (
-                  <div style={styles.msgBody}>{m.body}</div>
+                  <div style={styles.msgBody}>
+                    {justOpened ? <MagicText text={m.body} /> : m.body}
+                  </div>
                 ) : (
                   !m.image_url && (
                     <div style={{ color: "rgba(0,0,0,0.65)" }}>
@@ -366,7 +477,6 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     padding: 24,
-    background: "var(--tw-bg)",
     color: "var(--tw-text)",
   },
 
@@ -429,16 +539,37 @@ const styles = {
     marginTop: 16,
   },
 
-  // Messages: separate, square edges (no borderRadius)
-  msgCard: {
-    padding: 14,
-    borderRadius: 0,
-    border: "1px solid rgba(0,0,0,0.12)",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    backgroundImage: "url(/pattern-paper.jpg)",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+  msgCard: {},
+
+  envelopeWrap: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 170,
+    cursor: "pointer",
+  },
+
+  envelopeImg: {
+    width: 220,
+    height: "auto",
+    filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.5))",
+    display: "block",
+  },
+
+  envelopeLabel: {
+    position: "absolute",
+    top: "calc(10% + 5px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "70%",
+    textAlign: "center",
+    fontFamily: "var(--tw-font-message)",
+    fontSize: "0.9rem",
+    lineHeight: 1.4,
+    color: "rgba(20, 12, 5, 0.88)",
+    userSelect: "none",
+    pointerEvents: "none",
   },
 
   msgMeta: { fontSize: 12, color: "rgba(0,0,0,0.65)", marginBottom: 6 },
@@ -458,6 +589,7 @@ const styles = {
     fontSize: "1.05rem",
     color: "rgba(0,0,0,0.85)",
     whiteSpace: "pre-wrap",
+    overflowWrap: "break-word",
     lineHeight: 1.45,
   },
 };

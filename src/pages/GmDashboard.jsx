@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 import PlayerGrid from "../components/gm/PlayerGrid";
@@ -60,6 +60,13 @@ function IconShare(props) {
 }
 
 export default function GmDashboard() {
+  useEffect(() => {
+    const prev = document.body.style.backgroundImage;
+    document.body.style.backgroundImage =
+      'radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("/src/assets/bg_paper.jpg")';
+    return () => { document.body.style.backgroundImage = prev; };
+  }, []);
+
   const [sendingDraftId, setSendingDraftId] = useState(null);
   const { gmSecret } = useParams();
   const navigate = useNavigate();
@@ -82,7 +89,8 @@ export default function GmDashboard() {
   }, [expired, navigate]);
 
   // copied state
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // drafts accordion
   const [draftsOpen, setDraftsOpen] = useState(false);
@@ -674,6 +682,24 @@ export default function GmDashboard() {
     ? `${window.location.origin}/join?code=${tableCode}`
     : "";
 
+  async function copyRoomCode() {
+    if (!table?.code) return;
+    try {
+      await navigator.clipboard.writeText(table.code);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = table.code;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand("copy"); } finally { document.body.removeChild(ta); }
+    }
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 1500);
+  }
+
   async function copyShareLink() {
     if (!shareUrl) return;
 
@@ -709,8 +735,8 @@ export default function GmDashboard() {
     }
 
     if (copiedOk) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 1500);
     }
   }
 
@@ -780,7 +806,7 @@ export default function GmDashboard() {
   }, [players]);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--tw-bg)" }}>
+    <div className="min-h-screen">
       {expired && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
@@ -797,9 +823,16 @@ export default function GmDashboard() {
         </div>
       )}
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {/* Top header row */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
+        {/* Logo + session name + table code */}
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link to="/" className="flex-shrink-0">
+              <img
+                src="/Logo_TableWhisper.png"
+                alt="TableWhisper"
+                className="h-20 w-auto"
+              />
+            </Link>
             <h1
               className="tw-arcane text-5xl font-extrabold tracking-wide"
               style={{
@@ -809,49 +842,48 @@ export default function GmDashboard() {
             >
               {table?.name}
             </h1>
-
-            <p className="mt-2 text-sm font-medium text-gray-600">
-              Game Master Dashboard
-            </p>
           </div>
 
           {/* Table code card */}
-          <div className="w-full max-w-sm tw-card tw-card-pad">
-            <div className="text-2xl font-extrabold tracking-wider text-[var(--tw-accent)]">
+          <div className="flex-shrink-0 tw-card tw-card-pad">
+            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--tw-text-muted)" }}>
               Table Code
             </div>
-
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="text-2xl font-extrabold tracking-wider text-[var(--tw-accent)]">
+            <div className="mt-1 flex items-center gap-3">
+              <div className="text-xl font-extrabold tracking-wider" style={{ color: "var(--tw-accent)" }}>
                 {table?.code || "-----"}
               </div>
-
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={copyShareLink}
-                  disabled={!shareUrl}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-200 bg-white text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={copyRoomCode}
+                  disabled={!table?.code}
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text)" }}
                   title="Copy join link"
                 >
                   <IconCopy />
                 </button>
-
                 <button
                   type="button"
                   onClick={nativeShare}
                   disabled={!shareUrl}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-200 bg-white text-gray-900 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text)" }}
                   title="Share"
                 >
                   <IconShare />
                 </button>
               </div>
             </div>
-
-            {copied && (
-              <div className="mt-3 inline-flex rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-gray-900">
-                Copied!
+            {copiedCode && (
+              <div className="mt-2 text-xs font-semibold" style={{ color: "var(--tw-text-muted)" }}>
+                Copied room code!
+              </div>
+            )}
+            {copiedLink && (
+              <div className="mt-2 text-xs font-semibold" style={{ color: "var(--tw-text-muted)" }}>
+                Copied share link!
               </div>
             )}
           </div>
@@ -879,20 +911,21 @@ export default function GmDashboard() {
 
         <div className="mt-10 space-y-6">
           {/* Players strip */}
-          <div className="tw-card tw-card-pad">
+          <div className="tw-card-pad">
             <div className="flex flex-wrap items-center gap-4">
               <div
                 className="text-sm font-semibold"
-                style={{ color: "var(--tw-text-muted)" }}
+                style={{ color: "#D5CDBE" }}
               >
-                Players:
+                {playerCount} {playerCount === 1 ? "Player:" : "Players:"}
               </div>
 
               <div className="flex -space-x-2">
                 {playerChips.map((p) => (
                   <div
                     key={p.id}
-                    className="h-9 w-9 overflow-hidden rounded-full border-2 border-white bg-gray-200 shadow-sm"
+                    className="h-9 w-9 overflow-hidden rounded-full shadow-sm"
+                    style={{ border: "2px solid #6A7984" }}
                     title={p.name}
                   >
                     {p.avatarUrl ? (
@@ -909,17 +942,6 @@ export default function GmDashboard() {
                   </div>
                 ))}
               </div>
-
-              <div
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "var(--tw-text-muted)",
-                  border: "1px solid var(--tw-border)",
-                }}
-              >
-                {playerCount} {playerCount === 1 ? "player" : "players"}
-              </div>
             </div>
 
             {/* Keep your existing PlayerGrid for now, hidden from layout.
@@ -934,8 +956,8 @@ export default function GmDashboard() {
           </div>
 
           {/* Send a Message card (MessageComposer lives inside) */}
-          <div className="tw-card tw-card-pad">
-            <h2 className="text-2xl font-extrabold text-white">
+          <div className="tw-card tw-card-pad !mt-2">
+            <h2 className="text-center">
               Send a Message
             </h2>
 
@@ -972,7 +994,7 @@ export default function GmDashboard() {
               className="flex w-full items-center justify-between gap-4 px-5 py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="text-base font-extrabold text-white">
+                <div className="text-base font-extrabold" style={{ color: "#B79E81" }}>
                   Drafted Messages
                 </div>
                 <div
@@ -1072,7 +1094,7 @@ export default function GmDashboard() {
                               sendDraft(d);
                             }}
                             className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl transition hover:shadow-lg hover:-translate-y-[1px]"
-                            style={{ background: "var(--tw-accent)" }}
+                            style={{ background: "#69583D" }}
                             title="Send this draft"
                           >
                             <Send size={16} color="#fff" />
@@ -1100,8 +1122,8 @@ export default function GmDashboard() {
           </div>
 
           {/* Message Log card */}
-          <div className="tw-card tw-card-pad">
-            <h2 className="text-2xl font-extrabold text-white">Message Log</h2>
+          <div className="tw-card-pad">
+            <h2>Message Log</h2>
             <div className="mt-4">
               <MessageLog items={logItems} />
             </div>

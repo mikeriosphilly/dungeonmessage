@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import StartTable from "./pages/StartTable";
 import JoinTable from "./pages/JoinTable";
@@ -16,6 +16,11 @@ function ensureAnonAuth() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const hideHeader =
+    location.pathname.startsWith("/gm/") ||
+    location.pathname.startsWith("/table/");
+
   useEffect(() => {
     ensureAnonAuth().catch(() => {
       // keep quiet for now, we will show a real error later if needed
@@ -24,7 +29,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader />
+      {!hideHeader && <AppHeader />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/start" element={<StartTable />} />

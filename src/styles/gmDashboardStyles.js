@@ -12,9 +12,9 @@ export const gmDashboardStyles = {
     fontSize: 12,
     padding: "6px 10px",
     borderRadius: 999,
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fafafa",
-    color: "#111",
+    border: "1px solid rgba(245, 236, 205, 0.28)",
+    background: "#1c1915",
+    color: "#D5CDBE",
     fontWeight: 700,
     whiteSpace: "nowrap",
   },
@@ -27,13 +27,13 @@ export const gmDashboardStyles = {
   },
 
   checkboxLabel: {
-    color: "#111",
+    color: "#D5CDBE",
     fontWeight: 600,
   },
 
   pickLabel: {
     fontSize: 12,
-    color: "#666",
+    color: "#B8AD96",
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 8,
@@ -46,9 +46,9 @@ export const gmDashboardStyles = {
   },
 
   pill: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fff",
-    color: "#111",
+    border: "1px solid rgba(245, 236, 205, 0.28)",
+    background: "#252220",
+    color: "#D5CDBE",
     padding: "8px 10px",
     borderRadius: 999,
     cursor: "pointer",
@@ -56,9 +56,9 @@ export const gmDashboardStyles = {
   },
 
   pillSelected: {
-    background: "#111",
-    color: "#fff",
-    border: "1px solid rgba(0,0,0,0.18)",
+    background: "#F5ECCD",
+    color: "#111009",
+    border: "1px solid rgba(245, 236, 205, 0.28)",
   },
 
   actionRow: {
@@ -73,7 +73,7 @@ export const gmDashboardStyles = {
     border: "none",
     padding: 0,
     cursor: "pointer",
-    color: "#444",
+    color: "#B8AD96",
     textDecoration: "underline",
     fontWeight: 600,
   },
@@ -83,8 +83,8 @@ export const gmDashboardStyles = {
     gridTemplateColumns: "1fr auto",
     gap: 10,
     alignItems: "stretch",
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
+    border: "1px solid rgba(245, 236, 205, 0.15)",
+    background: "#c4a878",
     borderRadius: 14,
     padding: 12,
   },
@@ -101,11 +101,11 @@ export const gmDashboardStyles = {
 
   draftMeta: {
     fontSize: 12,
-    color: "#666",
+    color: "#6A5E48",
   },
 
   draftBody: {
-    color: "#111",
+    color: "#2e1f0a",
     whiteSpace: "pre-wrap",
     lineHeight: 1.35,
     overflow: "hidden",
@@ -115,9 +115,9 @@ export const gmDashboardStyles = {
   },
 
   draftDelete: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "#fafafa",
-    color: "#111",
+    border: "1px solid rgba(245, 236, 205, 0.28)",
+    background: "#1c1915",
+    color: "#D5CDBE",
     borderRadius: 12,
     padding: "10px 12px",
     cursor: "pointer",

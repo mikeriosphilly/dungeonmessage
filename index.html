@@ -8,11 +8,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Girassol&family=IM+Fell+English&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Girassol&family=IM+Fell+English&family=Pirata+One&family=Lato:wght@400;700&family=Inika:wght@400;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
+    <!-- SVG filter definitions (not rendered) -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+      <defs>
+        <filter id="h1-inner-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feFlood flood-color="black" flood-opacity="0.25" result="flood"/>
+          <feComposite in="flood" in2="SourceAlpha" operator="in" result="mask"/>
+          <feGaussianBlur in="mask" stdDeviation="2" result="blur"/>
+          <feOffset dx="0" dy="4" result="offset"/>
+          <feComposite in="offset" in2="SourceGraphic" operator="atop"/>
+        </filter>
+      </defs>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

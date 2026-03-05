@@ -33,15 +33,7 @@ export default function MessageLog({ items }) {
             return (
               <div
                 key={m.id}
-                style={{
-                  padding: 14,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  backgroundColor: "rgba(255,255,255,0.92)",
-                  backgroundImage: "url(/pattern-paper.jpg)",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
-                }}
+                className="tw-parchment-card"
               >
                 <div
                   style={{

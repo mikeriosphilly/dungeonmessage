@@ -25,8 +25,8 @@ export default function PlayerGrid({ tableLoaded, players, error }) {
                 height: 40,
                 borderRadius: 999,
                 objectFit: "cover",
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: "#fff",
+                border: "2px solid #6A7984",
+                background: "transparent",
               }}
             />
 
