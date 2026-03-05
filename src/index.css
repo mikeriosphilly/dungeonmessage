@@ -40,7 +40,9 @@ body,
 
 html,
 body {
-  overflow-x: hidden;
+  /* 'clip' unlike 'hidden' does not create a scroll container, so it
+     does not break position:fixed on iOS Safari */
+  overflow-x: clip;
 }
 
 * {
