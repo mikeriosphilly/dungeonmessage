@@ -50,8 +50,8 @@ body {
 }
 
 html {
-  /* Fallback color for before #page-bg renders, and for any gaps */
-  background-color: #1c1a17;
+  /* Matches the AppHeader background so the iOS safe-area strip blends in */
+  background-color: #0a0907;
 }
 
 body {
