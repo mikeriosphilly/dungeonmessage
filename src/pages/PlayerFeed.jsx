@@ -8,6 +8,8 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
+import bgPaper from "../assets/bg_paper.jpg";
+import envelopeImg from "../assets/envelope.png";
 
 function MagicText({ text }) {
   const chars = useMemo(() => {
@@ -41,7 +43,7 @@ export default function PlayerFeed() {
   useEffect(() => {
     const prev = document.body.style.backgroundImage;
     document.body.style.backgroundImage =
-      'radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("/src/assets/bg_paper.jpg")';
+      `radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("${bgPaper}")`;
     return () => { document.body.style.backgroundImage = prev; };
   }, []);
 
@@ -417,7 +419,7 @@ export default function PlayerFeed() {
                   onClick={isOpening ? undefined : () => openEnvelope(m.id)}
                 >
                   <img
-                    src="/src/assets/envelope.png"
+                    src={envelopeImg}
                     alt="New message — tap to open"
                     style={styles.envelopeImg}
                   />

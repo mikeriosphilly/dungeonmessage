@@ -58,7 +58,7 @@ body {
       rgba(0, 0, 0, 0) 50%,
       rgba(0, 0, 0, 0.25) 100%
     ),
-    url("/src/assets/bg_wood.jpg");
+    url("./assets/bg_wood.jpg");
 
   background-repeat: no-repeat, repeat;
   background-size: cover, auto;

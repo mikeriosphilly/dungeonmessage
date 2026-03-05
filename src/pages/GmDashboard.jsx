@@ -7,6 +7,7 @@ import MessageLog from "../components/gm/MessageLog";
 import MessageComposer from "../components/gm/MessageComposer";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { Send, Trash2 } from "lucide-react";
+import bgPaper from "../assets/bg_paper.jpg";
 
 const BUCKET = "message-images";
 
@@ -63,7 +64,7 @@ export default function GmDashboard() {
   useEffect(() => {
     const prev = document.body.style.backgroundImage;
     document.body.style.backgroundImage =
-      'radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("/src/assets/bg_paper.jpg")';
+      `radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%), url("${bgPaper}")`;
     return () => { document.body.style.backgroundImage = prev; };
   }, []);
 
