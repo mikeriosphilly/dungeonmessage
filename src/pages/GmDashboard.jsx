@@ -851,47 +851,91 @@ export default function GmDashboard() {
             {table?.name}
           </h1>
 
-          {/* Table code card */}
+          {/* Table code card — Invite Your Party */}
           <div
-            className="flex-shrink-0 rounded-xl border px-4 py-3"
+            className="flex-shrink-0"
             style={{
-              borderColor: "var(--tw-border)",
-              background: "rgba(255,255,255,0.03)",
+              position: "relative",
+              border: "1px solid rgba(151,130,98,0.55)",
+              background: "linear-gradient(135deg, rgba(151,130,98,0.13) 0%, rgba(245,236,205,0.06) 50%, rgba(151,130,98,0.10) 100%)",
+              boxShadow: "0 0 0 1px rgba(151,130,98,0.12) inset, 0 8px 32px rgba(0,0,0,0.55)",
+              padding: "12px 16px 10px",
             }}
           >
-            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--tw-text-muted)" }}>
-              Table Code
+            {/* Corner filigree brackets */}
+            <span style={{ position:"absolute", top:4, left:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
+            <span style={{ position:"absolute", top:4, right:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
+            <span style={{ position:"absolute", bottom:4, left:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
+            <span style={{ position:"absolute", bottom:4, right:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
+
+            {/* Label */}
+            <div
+              className="text-center text-xs font-semibold uppercase tracking-widest mb-1"
+              style={{ color: "#978262", letterSpacing: "0.18em" }}
+            >
+              Invite Your Party
             </div>
-            <div className="mt-1 flex items-center gap-3">
-              <div className="text-2xl font-extrabold tracking-widest" style={{ color: "var(--tw-accent)", fontFamily: "var(--tw-font-heading)" }}>
-                {table?.code || "-----"}
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={copyRoomCode}
-                  disabled={!table?.code}
-                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text-muted)" }}
-                  title="Copy join link"
-                >
-                  <IconCopy />
-                </button>
-                <button
-                  type="button"
-                  onClick={nativeShare}
-                  disabled={!shareUrl}
-                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-                  style={{ borderColor: "var(--tw-border)", background: "rgba(255,255,255,0.04)", color: "var(--tw-text-muted)" }}
-                  title="Share"
-                >
-                  <IconShare />
-                </button>
-              </div>
+
+            {/* Code */}
+            <div
+              className="tw-code-shimmer text-center font-extrabold tracking-widest"
+              style={{
+                fontFamily: "var(--tw-font-heading)",
+                fontSize: "2rem",
+                color: "#F5ECCD",
+                lineHeight: 1.1,
+              }}
+            >
+              {table?.code || "-----"}
             </div>
+
+            {/* Sub-label */}
+            <div
+              className="text-center mt-0.5 mb-2"
+              style={{ fontSize: 10, color: "rgba(184,173,150,0.65)", letterSpacing: "0.06em" }}
+            >
+              Share this code with your players
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={copyRoomCode}
+                disabled={!table?.code}
+                className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{
+                  border: "1px solid rgba(151,130,98,0.45)",
+                  background: "rgba(151,130,98,0.12)",
+                  color: "#D5CDBE",
+                  letterSpacing: "0.1em",
+                }}
+                title="Copy join link"
+              >
+                <IconCopy />
+                Copy
+              </button>
+              <button
+                type="button"
+                onClick={nativeShare}
+                disabled={!shareUrl}
+                className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{
+                  border: "1px solid rgba(151,130,98,0.45)",
+                  background: "rgba(151,130,98,0.12)",
+                  color: "#D5CDBE",
+                  letterSpacing: "0.1em",
+                }}
+                title="Share"
+              >
+                <IconShare />
+                Share
+              </button>
+            </div>
+
             {(copiedCode || copiedLink) && (
-              <div className="mt-1.5 text-xs font-semibold" style={{ color: "#B79E81" }}>
-                {copiedCode ? "Copied room code!" : "Copied share link!"}
+              <div className="mt-1.5 text-center text-xs font-semibold" style={{ color: "#B79E81" }}>
+                {copiedCode ? "Copied!" : "Link copied!"}
               </div>
             )}
           </div>
