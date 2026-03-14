@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "mcp__supabase__execute_sql",
+      "Bash(find C:/Users/mikey/Documents/Dev/tablewhisper -type f -name \"*Logo*\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"tablewhisper\" C:/Users/mikey/Documents/Dev/tablewhisper --include=\"*.json\" --include=\"*.md\" -i 2>/dev/null | head -30)",
+      "Bash(grep -rn \"Logo\\\\|message-images\\\\|OG_Image\" C:/Users/mikey/Documents/Dev/tablewhisper --exclude-dir=node_modules --exclude-dir=.git --exclude=\"*.lock\" 2>/dev/null | grep -v \".claude\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

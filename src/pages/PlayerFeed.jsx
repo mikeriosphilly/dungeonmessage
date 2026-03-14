@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   useParams,
   useSearchParams,
@@ -42,7 +42,7 @@ function MagicText({ text }) {
 }
 
 export default function PlayerFeed() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.style.backgroundImage = `url(${bgPaper})`;
     document.body.style.backgroundSize = "420px 420px";
     return () => {
@@ -456,6 +456,7 @@ export default function PlayerFeed() {
                       src={envelopeImg}
                       alt="New message — tap to open"
                       style={styles.envelopeImg}
+                      fetchpriority="high"
                     />
                     <div
                       className="tw-envelope-label"

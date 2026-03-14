@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
@@ -75,7 +75,7 @@ function SectionLabel({ children }) {
 }
 
 export default function GmDashboard() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.style.backgroundImage = `url(${bgPaper})`;
     document.body.style.backgroundSize = "420px 420px";
     return () => {

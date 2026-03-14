@@ -1,60 +1,97 @@
 import { Link } from "react-router-dom";
+import logoVertical from "../assets/Logo-vertical.png";
 
 export default function Landing() {
   return (
     <div style={styles.page}>
       <div style={styles.wrap}>
-      <div style={styles.inner}>
-        {/* Logo — drops in with warm glow */}
-        <img
-          src="/Logo-vertical.png"
-          alt="DungeonMessage"
-          style={styles.logo}
-          className="landing-logo"
-        />
+        <div style={styles.inner}>
+          {/* Logo — drops in with warm glow */}
+          <img
+            src={logoVertical}
+            alt="DungeonMessage"
+            style={styles.logo}
+            className="landing-logo"
+          />
 
-        {/* Ornamental divider */}
-        <div
-          className="landing-fade-up landing-divider"
-          style={{ animationDelay: "0.38s" }}
-        >
-          <span className="landing-divider-line" />
-          <span className="landing-divider-gem">◆</span>
-          <span className="landing-divider-line" />
-        </div>
-
-        {/* Subtitle */}
-        <p
-          className="landing-fade-up"
-          style={{ ...styles.subtitle, animationDelay: "0.5s" }}
-        >
-          Private messages for your table.
-        </p>
-
-        {/* CTAs */}
-        <div
-          className="landing-fade-up"
-          style={{ ...styles.actions, animationDelay: "0.68s" }}
-        >
-          <Link
-            to="/start"
-            className="landing-btn landing-btn-start"
-            style={styles.startBtn}
+          {/* Ornamental divider */}
+          <div
+            className="landing-fade-up landing-divider"
+            style={{ animationDelay: "0.38s" }}
           >
-            <span style={styles.btnLabel}>Start a Table</span>
-            <span style={styles.btnRole}>Game Master</span>
-          </Link>
+            <span className="landing-divider-line" />
+            <span className="landing-divider-gem">◆</span>
+            <span className="landing-divider-line" />
+          </div>
 
-          <Link
-            to="/join"
-            className="landing-btn landing-btn-join"
-            style={styles.joinBtn}
+          {/* Subtitle */}
+          <p
+            className="landing-fade-up"
+            style={{ ...styles.subtitle, animationDelay: "0.5s" }}
           >
-            <span style={styles.btnLabel}>Join a Table</span>
-            <span style={styles.btnRole}>Adventurer</span>
-          </Link>
+            Private messages for your table.
+          </p>
+
+          {/* CTAs */}
+          <div
+            className="landing-fade-up"
+            style={{ ...styles.actions, animationDelay: "0.68s" }}
+          >
+            <Link
+              to="/start"
+              className="landing-btn landing-btn-start"
+              style={styles.startBtn}
+            >
+              <span style={styles.btnLabel}>Start a Table</span>
+              <span style={styles.btnRole}>Game Master</span>
+            </Link>
+
+            <Link
+              to="/join"
+              className="landing-btn landing-btn-join"
+              style={styles.joinBtn}
+            >
+              <span style={styles.btnLabel}>Join a Table</span>
+              <span style={styles.btnRole}>Adventurer</span>
+            </Link>
+          </div>
+
+          {/* How it works */}
+          <div
+            className="landing-fade-up"
+            style={{ ...styles.howItWorks, animationDelay: "0.9s" }}
+          >
+            <div style={styles.howDivider}>
+              <span style={styles.howDividerLine} />
+              <span style={styles.howDividerLabel}>How it works</span>
+              <span style={styles.howDividerLine} />
+            </div>
+            <div style={styles.steps}>
+              {[
+                { n: "I",   title: "Open a Table",   desc: "The GM starts a session and receives a short code to share with the party." },
+                { n: "II",  title: "Players Join",   desc: "Each player joins on their own device — no account or app required." },
+                { n: "III", title: "Send in Secret", desc: "Pass notes, clues, and images to any player. Only they will ever see it." },
+              ].map(({ n, title, desc }, i, arr) => (
+                <div key={n} style={styles.step}>
+                  {/* Left: numeral + connector */}
+                  <div style={styles.stepLeft}>
+                    <div style={styles.stepNumeralWrap}>
+                      <span style={styles.stepNumeral}>{n}</span>
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div style={styles.stepConnector} />
+                    )}
+                  </div>
+                  {/* Right: text */}
+                  <div style={{ ...styles.stepRight, paddingBottom: i < arr.length - 1 ? 20 : 0 }}>
+                    <span style={styles.stepTitle}>{title}</span>
+                    <span style={styles.stepDesc}>{desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -70,9 +107,9 @@ const styles = {
   wrap: {
     flex: 1,
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
-    padding: "40px 24px",
+    padding: "80px 24px",
   },
 
   inner: {
@@ -84,7 +121,7 @@ const styles = {
   },
 
   logo: {
-    width: "min(560px, 85vw)",
+    width: "min(448px, 68vw)",
     height: "auto",
     objectFit: "contain",
     display: "block",
@@ -145,5 +182,104 @@ const styles = {
     letterSpacing: "0.1em",
     textTransform: "uppercase",
     opacity: 0.6,
+  },
+
+  howItWorks: {
+    marginTop: 48,
+    width: "100%",
+  },
+
+  howDivider: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 28,
+  },
+
+  howDividerLine: {
+    flex: 1,
+    height: 1,
+    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
+  },
+
+  howDividerLabel: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.72rem",
+    fontWeight: 700,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+    color: "#978262",
+    whiteSpace: "nowrap",
+  },
+
+  steps: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    textAlign: "left",
+  },
+
+  step: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+
+  stepLeft: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    flexShrink: 0,
+    width: 44,
+  },
+
+  stepNumeralWrap: {
+    width: 44,
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "1px solid rgba(151,130,98,0.35)",
+    background: "rgba(151,130,98,0.07)",
+    flexShrink: 0,
+  },
+
+  stepNumeral: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.3rem",
+    color: "#978262",
+    lineHeight: 1,
+    letterSpacing: "0.04em",
+  },
+
+  stepConnector: {
+    width: 1,
+    flex: 1,
+    minHeight: 20,
+    background: "linear-gradient(to bottom, rgba(151,130,98,0.35), rgba(151,130,98,0.08))",
+  },
+
+  stepRight: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    paddingTop: 10,
+  },
+
+  stepTitle: {
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.875rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "#F5ECCD",
+  },
+
+  stepDesc: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.875rem",
+    lineHeight: 1.6,
+    color: "#8a7f6e",
   },
 };
