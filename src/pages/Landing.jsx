@@ -1,31 +1,17 @@
 import { Link } from "react-router-dom";
-import AppHeader from "../components/AppHeader";
 
 export default function Landing() {
   return (
     <div style={styles.page}>
-      <AppHeader />
       <div style={styles.wrap}>
       <div style={styles.inner}>
         {/* Logo — drops in with warm glow */}
         <img
-          src="/Logo_TableWhisper.png"
-          alt="TableWhisper"
+          src="/Logo-vertical.png"
+          alt="DungeonMessage"
           style={styles.logo}
           className="landing-logo"
         />
-
-        {/* Title — uses global metallic h1 CSS */}
-        <h1
-          className="landing-fade-up"
-          style={{
-            fontSize: "clamp(52px, 10vw, 80px)",
-            margin: "12px 0 0",
-            animationDelay: "0.2s",
-          }}
-        >
-          TableWhisper
-        </h1>
 
         {/* Ornamental divider */}
         <div
@@ -98,8 +84,8 @@ const styles = {
   },
 
   logo: {
-    width: 200,
-    height: 200,
+    width: "min(560px, 85vw)",
+    height: "auto",
     objectFit: "contain",
     display: "block",
   },

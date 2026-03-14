@@ -14,11 +14,9 @@ export default function AppHeader({ avatarSrc = null, connected = true }) {
   return (
     <header style={s.root}>
       <div style={s.row}>
-
-        {/* Left: seal logo + wordmark */}
+        {/* Left: logo */}
         <Link to="/" style={s.brand}>
-          <img src="/Logo_TableWhisper.png" alt="" style={s.logo} />
-          <span style={s.wordmark}>TableWhisper</span>
+          <img src="/Logo-horizontal.png" alt="DungeonMessage" style={s.logo} />
         </Link>
 
         {/* Right: avatar + status dot */}
@@ -74,20 +72,11 @@ const s = {
   },
 
   logo: {
-    width: 44,
-    height: 44,
+    height: 60,
+    width: "auto",
     objectFit: "contain",
     flexShrink: 0,
     filter: "drop-shadow(0 1px 5px rgba(245,220,140,0.25))",
-  },
-
-  wordmark: {
-    fontFamily: "var(--tw-font-heading)",
-    fontSize: "1.65rem",
-    color: "#F5ECCD",
-    letterSpacing: "0.04em",
-    lineHeight: 1,
-    textShadow: "0 1px 10px rgba(245,220,140,0.14)",
   },
 
   avatarWrap: {

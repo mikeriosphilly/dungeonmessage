@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { startTable } from "../services/backend";
-import AppHeader from "../components/AppHeader";
 
 export default function StartTable() {
   const [name, setName] = useState("");
@@ -26,7 +25,6 @@ export default function StartTable() {
 
   return (
     <div style={styles.page}>
-      <AppHeader />
       <div style={styles.wrap}>
       <div style={styles.inner}>
 

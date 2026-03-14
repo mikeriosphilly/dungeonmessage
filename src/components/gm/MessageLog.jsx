@@ -31,10 +31,7 @@ export default function MessageLog({ items }) {
                   : `To: ${recipientNames.join(", ")}`;
 
             return (
-              <div
-                key={m.id}
-                className="tw-parchment-card"
-              >
+              <div key={m.id} className="tw-parchment-card">
                 <div
                   style={{
                     display: "flex",
@@ -84,7 +81,7 @@ export default function MessageLog({ items }) {
                 <div
                   style={{
                     fontFamily: "var(--tw-font-message)",
-                    fontSize: "1.05rem",
+                    fontSize: "1.5rem",
                     color: "rgba(0,0,0,0.85)",
                     whiteSpace: "pre-wrap",
                     lineHeight: 1.45,

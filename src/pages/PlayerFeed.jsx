@@ -35,7 +35,7 @@ function MagicText({ text }) {
           >
             {char}
           </span>
-        )
+        ),
       )}
     </>
   );
@@ -62,19 +62,24 @@ export default function PlayerFeed() {
 
   const getOpenedIds = useCallback(() => {
     try {
-      return new Set(JSON.parse(localStorage.getItem(openedStorageKey) || "[]"));
+      return new Set(
+        JSON.parse(localStorage.getItem(openedStorageKey) || "[]"),
+      );
     } catch {
       return new Set();
     }
   }, [openedStorageKey]);
 
-  const persistOpenedId = useCallback((id) => {
-    try {
-      const opened = getOpenedIds();
-      opened.add(id);
-      localStorage.setItem(openedStorageKey, JSON.stringify([...opened]));
-    } catch {}
-  }, [openedStorageKey, getOpenedIds]);
+  const persistOpenedId = useCallback(
+    (id) => {
+      try {
+        const opened = getOpenedIds();
+        opened.add(id);
+        localStorage.setItem(openedStorageKey, JSON.stringify([...opened]));
+      } catch {}
+    },
+    [openedStorageKey, getOpenedIds],
+  );
 
   const storedPlayerId = useMemo(() => {
     return urlPlayerId || localStorage.getItem(storageKey);
@@ -278,7 +283,9 @@ export default function PlayerFeed() {
       }
     } else {
       // Initial load: seal messages the player hasn't opened yet
-      const unsealed = messages.map((m) => m.id).filter((id) => !openedIds.has(id));
+      const unsealed = messages
+        .map((m) => m.id)
+        .filter((id) => !openedIds.has(id));
       if (unsealed.length > 0) setSealedIds(new Set(unsealed));
       initialLoadDone.current = true;
     }
@@ -286,15 +293,26 @@ export default function PlayerFeed() {
     prevMessageIds.current = currentIds;
   }, [messages, getOpenedIds]);
 
-  const openEnvelope = useCallback((id) => {
-    persistOpenedId(id);
-    setOpeningIds((prev) => new Set([...prev, id]));
-    setTimeout(() => {
-      setSealedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
-      setOpeningIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
-      setJustOpenedIds((prev) => new Set([...prev, id]));
-    }, 450);
-  }, [persistOpenedId]);
+  const openEnvelope = useCallback(
+    (id) => {
+      persistOpenedId(id);
+      setOpeningIds((prev) => new Set([...prev, id]));
+      setTimeout(() => {
+        setSealedIds((prev) => {
+          const s = new Set(prev);
+          s.delete(id);
+          return s;
+        });
+        setOpeningIds((prev) => {
+          const s = new Set(prev);
+          s.delete(id);
+          return s;
+        });
+        setJustOpenedIds((prev) => new Set([...prev, id]));
+      }, 450);
+    },
+    [persistOpenedId],
+  );
 
   // Realtime: when a message is inserted or updated for this table, refresh inbox
   useEffect(() => {
@@ -356,123 +374,142 @@ export default function PlayerFeed() {
         connected={isConnected}
       />
       <div style={styles.wrap}>
-      {expired && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-6"
-          style={{ background: "rgba(0,0,0,0.75)" }}
-        >
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-black/70 p-6 text-center shadow-2xl">
-            <div className="text-xl font-extrabold text-white">
-              This table has expired
-            </div>
-            <div className="mt-2 text-sm text-white/80">
-              Redirecting you to the home page...
+        {expired && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center px-6"
+            style={{ background: "rgba(0,0,0,0.75)" }}
+          >
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-black/70 p-6 text-center shadow-2xl">
+              <div className="text-xl font-extrabold text-white">
+                This table has expired
+              </div>
+              <div className="mt-2 text-sm text-white/80">
+                Redirecting you to the home page...
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {/* Page header card */}
-      <div style={styles.card}>
-        <h1 style={styles.title}>{titleText}</h1>
-
-        {player && (
-          <p style={styles.playingAs}>
-            Playing as <strong style={{ color: "var(--tw-text)" }}>{player.display_name}</strong>
-          </p>
         )}
+        {/* Page header card */}
+        <div style={styles.card}>
+          <h1 style={styles.title}>{titleText}</h1>
 
-        {(loadingTable || loadingPlayer) && (
-          <p style={styles.muted}>Loading...</p>
-        )}
+          {player && (
+            <p style={styles.playingAs}>
+              Playing as{" "}
+              <strong style={{ color: "var(--tw-text)" }}>
+                {player.display_name}
+              </strong>
+            </p>
+          )}
 
-        {error && !expired && <p style={styles.error}>{error}</p>}
+          {(loadingTable || loadingPlayer) && (
+            <p style={styles.muted}>Loading...</p>
+          )}
 
-        {!storedPlayerId && (
-          <p style={styles.muted}>
-            Missing player session. Go back and join the table again.
-          </p>
-        )}
+          {error && !expired && <p style={styles.error}>{error}</p>}
 
-        {/* Decorative divider */}
-        <div style={styles.headerDivider}>
-          <div style={styles.headerDividerLine} />
-          <span style={styles.headerDividerGem}>✦</span>
-          <div style={styles.headerDividerLine} />
-        </div>
-      </div>
+          {!storedPlayerId && (
+            <p style={styles.muted}>
+              Missing player session. Go back and join the table again.
+            </p>
+          )}
 
-      {/* Messages live OUTSIDE the gradient card */}
-      <div style={styles.msgList}>
-        {messages.length === 0 ? (
-          <div style={styles.emptyState}>
-            <img src={GM_AVATAR_SRC} alt="Game Master" style={styles.emptyStateOrb} />
-            <p style={styles.emptyStateText}>Awaiting word from your GM...</p>
-            <p style={styles.emptyStateSub}>Messages will appear here as they are sent</p>
+          {/* Decorative divider */}
+          <div style={styles.headerDivider}>
+            <div style={styles.headerDividerLine} />
+            <span style={styles.headerDividerGem}>✦</span>
+            <div style={styles.headerDividerLine} />
           </div>
-        ) : (
-          messages.map((m) => {
-            const isSealed = sealedIds.has(m.id);
-            const isOpening = openingIds.has(m.id);
-            const justOpened = justOpenedIds.has(m.id);
+        </div>
 
-            if (isSealed) {
+        {/* Messages live OUTSIDE the gradient card */}
+        <div style={styles.msgList}>
+          {messages.length === 0 ? (
+            <div style={styles.emptyState}>
+              <img
+                src={GM_AVATAR_SRC}
+                alt="Game Master"
+                style={styles.emptyStateOrb}
+              />
+              <p style={styles.emptyStateText}>Awaiting word from your GM...</p>
+              <p style={styles.emptyStateSub}>
+                Messages will appear here as they are sent
+              </p>
+            </div>
+          ) : (
+            messages.map((m) => {
+              const isSealed = sealedIds.has(m.id);
+              const isOpening = openingIds.has(m.id);
+              const justOpened = justOpenedIds.has(m.id);
+
+              if (isSealed) {
+                return (
+                  <div
+                    key={m.id}
+                    className={
+                      isOpening ? "tw-envelope-exit" : "tw-envelope-enter"
+                    }
+                    style={styles.envelopeWrap}
+                    onClick={isOpening ? undefined : () => openEnvelope(m.id)}
+                  >
+                    <img
+                      src={envelopeImg}
+                      alt="New message — tap to open"
+                      style={styles.envelopeImg}
+                    />
+                    <div
+                      className="tw-envelope-label"
+                      style={styles.envelopeLabel}
+                    >
+                      Tap to reveal
+                      <br />
+                      secret message
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={m.id}
-                  className={isOpening ? "tw-envelope-exit" : "tw-envelope-enter"}
-                  style={styles.envelopeWrap}
-                  onClick={isOpening ? undefined : () => openEnvelope(m.id)}
+                  className={`tw-parchment-card${justOpened ? " tw-msg-enter" : ""}`}
+                  style={styles.msgCard}
                 >
-                  <img
-                    src={envelopeImg}
-                    alt="New message — tap to open"
-                    style={styles.envelopeImg}
-                  />
-                  <div className="tw-envelope-label" style={styles.envelopeLabel}>
-                    Tap to reveal<br />secret message
+                  <div style={styles.msgMeta}>
+                    {new Date(m.sent_at || m.created_at).toLocaleTimeString(
+                      [],
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </div>
+
+                  {m.image_url && (
+                    <img
+                      src={m.image_url}
+                      alt="GM sent image"
+                      style={styles.msgImage}
+                      loading="lazy"
+                    />
+                  )}
+
+                  {m.body ? (
+                    <div style={styles.msgBody}>
+                      {justOpened ? <MagicText text={m.body} /> : m.body}
+                    </div>
+                  ) : (
+                    !m.image_url && (
+                      <div style={{ color: "rgba(0,0,0,0.65)" }}>
+                        (No message text)
+                      </div>
+                    )
+                  )}
                 </div>
               );
-            }
-
-            return (
-              <div
-                key={m.id}
-                className={`tw-parchment-card${justOpened ? " tw-msg-enter" : ""}`}
-                style={styles.msgCard}
-              >
-                <div style={styles.msgMeta}>
-                  {new Date(m.sent_at || m.created_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-
-                {m.image_url && (
-                  <img
-                    src={m.image_url}
-                    alt="GM sent image"
-                    style={styles.msgImage}
-                    loading="lazy"
-                  />
-                )}
-
-                {m.body ? (
-                  <div style={styles.msgBody}>
-                    {justOpened ? <MagicText text={m.body} /> : m.body}
-                  </div>
-                ) : (
-                  !m.image_url && (
-                    <div style={{ color: "rgba(0,0,0,0.65)" }}>
-                      (No message text)
-                    </div>
-                  )
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+            })
+          )}
+        </div>
       </div>
     </div>
   );
@@ -515,7 +552,8 @@ const styles = {
   headerDividerLine: {
     flex: 1,
     height: 1,
-    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.35), transparent)",
+    background:
+      "linear-gradient(to right, transparent, rgba(151,130,98,0.35), transparent)",
   },
 
   headerDividerGem: {
@@ -645,8 +683,8 @@ const styles = {
     width: "70%",
     textAlign: "center",
     fontFamily: "var(--tw-font-message)",
-    fontSize: "0.9rem",
-    lineHeight: 1.4,
+    fontSize: "1.2rem",
+    lineHeight: 1.2,
     color: "rgba(20, 12, 5, 0.88)",
     userSelect: "none",
     pointerEvents: "none",
@@ -666,7 +704,7 @@ const styles = {
 
   msgBody: {
     fontFamily: "var(--tw-font-message)",
-    fontSize: "1.05rem",
+    fontSize: "1.5rem",
     color: "rgba(0,0,0,0.85)",
     whiteSpace: "pre-wrap",
     overflowWrap: "break-word",

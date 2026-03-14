@@ -764,7 +764,7 @@ export default function GmDashboard() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join TableWhisper",
+          title: "Join DungeonMessage",
           text: table?.name ? `Join my table: ${table.name}` : "Join my table",
           url: shareUrl,
         });
@@ -842,18 +842,18 @@ export default function GmDashboard() {
         </div>
       )}
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
-        {/* Session name + table code — stacks on mobile */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* Session name + code card — 2-col on desktop, 1-col on mobile */}
+        <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
           <h1
-            className="min-w-0"
+            className="text-center sm:text-left"
             style={{ fontFamily: "var(--tw-font-heading)", lineHeight: 1.1, fontSize: "clamp(2rem, 6vw, 3rem)" }}
           >
             {table?.name}
           </h1>
 
-          {/* Table code card — Invite Your Party */}
+          {/* Table code card */}
           <div
-            className="flex-shrink-0"
+            className="mx-auto w-full max-w-xs sm:ml-auto sm:mr-0"
             style={{
               position: "relative",
               border: "1px solid rgba(151,130,98,0.55)",
@@ -862,7 +862,7 @@ export default function GmDashboard() {
               padding: "12px 16px 10px",
             }}
           >
-            {/* Corner filigree brackets */}
+            {/* Corner filigree marks */}
             <span style={{ position:"absolute", top:4, left:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
             <span style={{ position:"absolute", top:4, right:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
             <span style={{ position:"absolute", bottom:4, left:5, fontSize:10, color:"rgba(151,130,98,0.6)", lineHeight:1, userSelect:"none" }}>✦</span>
@@ -974,7 +974,7 @@ export default function GmDashboard() {
           </div>
         )}
 
-        <div className="mt-8 space-y-5">
+        <div className="mt-5 space-y-5">
           {/* Players strip */}
           <div
             className="rounded-xl border px-5 py-4"

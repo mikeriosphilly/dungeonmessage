@@ -4,7 +4,6 @@ import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import { supabase } from "../lib/supabaseClient";
-import AppHeader from "../components/AppHeader";
 
 const GM_INACTIVITY_HOURS = 6;
 
@@ -28,6 +27,7 @@ export default function JoinTable() {
 
   const popoverRef = useRef(null);
   const buttonRef = useRef(null);
+  const nameRef = useRef(null);
 
   const canJoin =
     code.trim().length >= 4 && name.trim().length > 0 && !busy && tableOk;
@@ -40,7 +40,10 @@ export default function JoinTable() {
 
   useEffect(() => {
     const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
-    if (fromUrl && fromUrl !== code) setCode(fromUrl);
+    if (fromUrl && fromUrl !== code) {
+      setCode(fromUrl);
+      setTimeout(() => nameRef.current?.focus(), 0);
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -162,7 +165,6 @@ export default function JoinTable() {
 
   return (
     <div style={styles.page}>
-      <AppHeader />
       <div style={styles.wrap}>
       <div style={styles.inner}>
 
@@ -284,6 +286,7 @@ export default function JoinTable() {
           {/* Name */}
           <label style={styles.label}>Your name</label>
           <input
+            ref={nameRef}
             style={styles.input}
             value={name}
             onChange={(e) => setName(e.target.value)}

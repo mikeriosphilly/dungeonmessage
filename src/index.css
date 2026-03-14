@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pirata One";
+  src: url("/fonts/PirataOne-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bold Riley";
+  src: url("/fonts/Bold-Riley.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Keep this file as "global fundamentals only".
    Tailwind should own most styling decisions. */
 
@@ -13,10 +29,10 @@
   --tw-bg: #1c1a17;
   --tw-header: #111009;
 
-  --tw-text: #D5CDBE;
-  --tw-text-muted: #B8AD96;
+  --tw-text: #d5cdbe;
+  --tw-text-muted: #b8ad96;
 
-  --tw-accent: #F5ECCD;
+  --tw-accent: #f5eccd;
   --tw-accent-2: #8b2020;
 
   --tw-card-a: #252220;
@@ -26,7 +42,7 @@
   --tw-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 
   --tw-font-heading: "Pirata One", serif;
-  --tw-font-message: "Inika", serif;
+  --tw-font-message: "Bold Riley", serif;
 }
 
 /* Critical: do not center the entire app with flex.
@@ -84,7 +100,11 @@ body {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
 }
 
 #root {
@@ -98,23 +118,19 @@ body {
   line-height: 1.5;
 }
 
-h1, h2 {
+h1,
+h2 {
   font-family: "Pirata One", serif;
 }
 
 h2 {
   font-size: 1.75rem;
-  color: #F5ECCD;
+  color: #f5eccd;
 }
 
 h1 {
   letter-spacing: 0.03em;
-  background: linear-gradient(
-    0deg,
-    #ffffff 0%,
-    #ffffff 50%,
-    #a8a8a8 100%
-  );
+  background: linear-gradient(0deg, #ffffff 0%, #ffffff 50%, #a8a8a8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -123,7 +139,10 @@ h1 {
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.9));
 }
 
-h3, h4, h5, h6 {
+h3,
+h4,
+h5,
+h6 {
   font-family: "Lato", sans-serif;
 }
 
@@ -139,22 +158,24 @@ h3, h4, h5, h6 {
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .tw-checkbox:checked {
   background: rgba(213, 205, 190, 0.12);
-  border-color: #D5CDBE;
+  border-color: #d5cdbe;
 }
 
 .tw-checkbox:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 4px;
   top: 1px;
   width: 5px;
   height: 9px;
-  border: 1.5px solid #D5CDBE;
+  border: 1.5px solid #d5cdbe;
   border-top: none;
   border-left: none;
   transform: rotate(45deg);
@@ -164,11 +185,15 @@ h3, h4, h5, h6 {
 .avatar-thumb {
   border-radius: 50%;
   overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .avatar-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 3px rgba(151, 130, 98, 0.55), 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(151, 130, 98, 0.55),
+    0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* Links: keep minimal, Tailwind can override per-component */
@@ -181,7 +206,7 @@ a {
 input,
 textarea,
 select {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 /* Parchment message card using border-image */
@@ -189,23 +214,23 @@ select {
   border-style: solid;
   border-width: 4px 3px;
   border-color: transparent;
-  border-image-source: url('./assets/ParchmentBox_border.png');
+  border-image-source: url("./assets/ParchmentBox_border.png");
   border-image-slice: 25%;
   border-image-width: 80px;
   border-image-repeat: repeat;
   min-height: 170px;
   padding: 20px;
-  background-image: url('./assets/ParchmentBox_background.png');
+  background-image: url("./assets/ParchmentBox_background.jpg");
+  background-size: 500px;
   background-repeat: repeat;
-  background-size: auto;
   background-clip: padding-box;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 /* Reusable UI primitives */
 .tw-card {
-  background: #14181B;
-  border: 1px solid #1E2327;
+  background: #14181b;
+  border: 1px solid #1e2327;
   box-shadow: 0 16px 35px 5px rgba(0, 0, 0, 0.25);
   border-radius: 0;
 }
@@ -244,8 +269,18 @@ select {
 
 /* Table code glow pulse */
 @keyframes tw-code-shimmer {
-  0%, 100% { text-shadow: 0 0 14px rgba(245,220,140,0.22), 0 2px 8px rgba(0,0,0,0.9); }
-  50%       { text-shadow: 0 0 28px rgba(245,200,80,0.55), 0 0 10px rgba(220,170,50,0.3), 0 2px 8px rgba(0,0,0,0.9); }
+  0%,
+  100% {
+    text-shadow:
+      0 0 14px rgba(245, 220, 140, 0.22),
+      0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+  50% {
+    text-shadow:
+      0 0 28px rgba(245, 200, 80, 0.55),
+      0 0 10px rgba(220, 170, 50, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.9);
+  }
 }
 .tw-code-shimmer {
   animation: tw-code-shimmer 3s ease-in-out infinite;
@@ -253,8 +288,17 @@ select {
 
 /* Status dot pulse (AppHeader connected indicator) */
 @keyframes tw-dot-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px #0a0907, 0 0 0 0 rgba(74, 222, 128, 0); }
-  50%       { box-shadow: 0 0 0 2px #0a0907, 0 0 0 4px rgba(74, 222, 128, 0.25); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px #0a0907,
+      0 0 0 0 rgba(74, 222, 128, 0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px #0a0907,
+      0 0 0 4px rgba(74, 222, 128, 0.25);
+  }
 }
 .tw-dot-pulse {
   animation: tw-dot-pulse 2.5s ease-in-out infinite;
@@ -285,16 +329,20 @@ select {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: drop-shadow(0 6px 28px rgba(245, 220, 140, 0.35)) drop-shadow(0 12px 40px rgba(0,0,0,0.7));
+    filter: drop-shadow(0 6px 28px rgba(245, 220, 140, 0.35))
+      drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7));
   }
 }
 
 @keyframes kf-landing-glow {
-  0%, 100% {
-    filter: drop-shadow(0 6px 20px rgba(245, 220, 140, 0.28)) drop-shadow(0 12px 40px rgba(0,0,0,0.7));
+  0%,
+  100% {
+    filter: drop-shadow(0 6px 20px rgba(245, 220, 140, 0.28))
+      drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7));
   }
   50% {
-    filter: drop-shadow(0 6px 36px rgba(245, 220, 140, 0.55)) drop-shadow(0 12px 40px rgba(0,0,0,0.7));
+    filter: drop-shadow(0 6px 36px rgba(245, 220, 140, 0.55))
+      drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7));
   }
 }
 
@@ -332,7 +380,12 @@ select {
 .landing-divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(245, 236, 205, 0.35), transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(245, 236, 205, 0.35),
+    transparent
+  );
 }
 
 .landing-divider-gem {
@@ -343,7 +396,10 @@ select {
 
 .landing-btn {
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 }
 
 .landing-btn:hover {
@@ -363,8 +419,12 @@ select {
 }
 
 @keyframes tw-magic-char-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .tw-magic-char {
@@ -395,11 +455,21 @@ select {
 }
 
 @keyframes tw-envelope-label-pulse {
-  0%       { opacity: 0; }
-  12%      { opacity: 1; }
-  28%      { opacity: 1; }
-  42%      { opacity: 0; }
-  100%     { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  28% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .tw-envelope-label {
@@ -408,8 +478,13 @@ select {
 }
 
 @keyframes tw-envelope-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .tw-envelope-enter {
