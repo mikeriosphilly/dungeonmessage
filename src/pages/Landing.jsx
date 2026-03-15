@@ -121,7 +121,7 @@ const styles = {
   },
 
   logo: {
-    width: "min(448px, 68vw)",
+    width: "min(448px, 54vw)",
     height: "auto",
     objectFit: "contain",
     display: "block",

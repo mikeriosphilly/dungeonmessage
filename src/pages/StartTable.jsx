@@ -26,67 +26,75 @@ export default function StartTable() {
   return (
     <div style={styles.page}>
       <div style={styles.wrap}>
-      <div style={styles.inner}>
-
-        <h1
-          className="landing-fade-up"
-          style={{ fontSize: "clamp(42px, 8vw, 64px)", margin: "4px 0 0", animationDelay: "0.1s" }}
-        >
-          Start a Table
-        </h1>
-
-        <div
-          className="landing-fade-up landing-divider"
-          style={{ animationDelay: "0.22s" }}
-        >
-          <span className="landing-divider-line" />
-          <span className="landing-divider-gem">◆</span>
-          <span className="landing-divider-line" />
-        </div>
-
-        <p
-          className="landing-fade-up"
-          style={{ ...styles.subtitle, animationDelay: "0.32s" }}
-        >
-          Name your session. You'll receive a secret link<br />
-          to command from, and a code for your players.
-        </p>
-
-        {/* Form */}
-        <div
-          className="landing-fade-up"
-          style={{ ...styles.form, animationDelay: "0.44s" }}
-        >
-          <label style={styles.label}>Table name</label>
-          <input
-            style={styles.input}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && canStart && onStart()}
-            placeholder="The Gilded Goose Tavern"
-            autoFocus
-          />
-
-          <button
+        <div style={styles.inner}>
+          <h1
+            className="landing-fade-up"
             style={{
-              ...styles.submitBtn,
-              ...(!canStart ? styles.submitBtnDisabled : {}),
+              fontSize: "clamp(42px, 8vw, 64px)",
+              margin: "4px 0 0",
+              animationDelay: "0.1s",
             }}
-            disabled={!canStart}
-            onClick={onStart}
-            className={canStart ? "landing-btn-start" : ""}
           >
-            {busy ? "Opening the session..." : "Start session"}
-          </button>
+            Start a Table
+          </h1>
 
-          {error && <p style={styles.error}>{error}</p>}
+          <div
+            className="landing-fade-up landing-divider"
+            style={{ animationDelay: "0.22s" }}
+          >
+            <span className="landing-divider-line" />
+            <span className="landing-divider-gem">◆</span>
+            <span className="landing-divider-line" />
+          </div>
+
+          <p
+            className="landing-fade-up"
+            style={{ ...styles.subtitle, animationDelay: "0.32s" }}
+          >
+            Name your session. You'll receive a secret link
+            <br />
+            for your table, and a code for your players.
+          </p>
+
+          {/* Form */}
+          <div
+            className="landing-fade-up"
+            style={{ ...styles.form, animationDelay: "0.44s" }}
+          >
+            <label style={styles.label}>Table name</label>
+            <input
+              style={styles.input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && canStart && onStart()}
+              placeholder="The Gilded Goose Tavern"
+              autoFocus
+            />
+
+            <button
+              style={{
+                ...styles.submitBtn,
+                ...(!canStart ? styles.submitBtnDisabled : {}),
+              }}
+              disabled={!canStart}
+              onClick={onStart}
+              className={canStart ? "landing-btn-start" : ""}
+            >
+              {busy ? "Opening the session..." : "Start session"}
+            </button>
+
+            {error && <p style={styles.error}>{error}</p>}
+          </div>
+
+          <Link
+            to="/"
+            style={styles.backLink}
+            className="landing-fade-up"
+            tabIndex={0}
+          >
+            ← Back to home
+          </Link>
         </div>
-
-        <Link to="/" style={styles.backLink} className="landing-fade-up" tabIndex={0}>
-          ← Back to home
-        </Link>
-
-      </div>
       </div>
     </div>
   );
@@ -127,7 +135,7 @@ const styles = {
   subtitle: {
     fontFamily: "var(--tw-font-message)",
     fontStyle: "italic",
-    fontSize: "1.05rem",
+    fontSize: "1.15rem",
     lineHeight: 1.7,
     color: "var(--tw-text-muted)",
     margin: "0 0 32px",
@@ -168,13 +176,15 @@ const styles = {
     padding: "16px 20px",
     background: "#434135",
     border: "1px solid #978262",
-    boxShadow: "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    boxShadow:
+      "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
     color: "#F5ECCD",
     fontFamily: "var(--tw-font-heading)",
     fontSize: "1.3rem",
     letterSpacing: "0.04em",
     cursor: "pointer",
-    transition: "transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease",
+    transition:
+      "transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease",
   },
 
   submitBtnDisabled: {

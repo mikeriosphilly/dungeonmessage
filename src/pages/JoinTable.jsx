@@ -355,7 +355,7 @@ const styles = {
   subtitle: {
     fontFamily: "var(--tw-font-message)",
     fontStyle: "italic",
-    fontSize: "1.05rem",
+    fontSize: "1.15rem",
     lineHeight: 1.7,
     color: "var(--tw-text-muted)",
     margin: "0 0 24px",
