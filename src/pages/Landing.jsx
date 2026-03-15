@@ -1,102 +1,207 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logoVertical from "../assets/Logo-vertical.png";
 
+const STEPS = [
+  { n: "I",   title: "Open a Table",   desc: "The GM starts a session and receives a short code to share with the party." },
+  { n: "II",  title: "Players Join",   desc: "Each player joins on their own device — no account or app required." },
+  { n: "III", title: "Send in Secret", desc: "Pass notes, clues, and images to any player. Only they will ever see it." },
+];
+
 export default function Landing() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 700);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 700);
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const howItWorks = (
+    <div style={{ ...styles.howItWorks, marginTop: isDesktop ? 0 : 48 }}>
+      <div style={styles.howDivider}>
+        <span style={styles.howDividerLine} />
+        <span style={styles.howDividerLabel}>How it works</span>
+        <span style={styles.howDividerLine} />
+      </div>
+      <div style={styles.steps}>
+        {STEPS.map(({ n, title, desc }, i, arr) => (
+          <div key={n} style={styles.step}>
+            <div style={styles.stepLeft}>
+              <div style={styles.stepNumeralWrap}>
+                <span style={styles.stepNumeral}>{n}</span>
+              </div>
+              {i < arr.length - 1 && <div style={styles.stepConnector} />}
+            </div>
+            <div style={{ ...styles.stepRight, paddingBottom: i < arr.length - 1 ? 20 : 0 }}>
+              <span style={styles.stepTitle}>{title}</span>
+              <span style={styles.stepDesc}>{desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div style={styles.page}>
-      <div style={styles.wrap}>
-        <div style={styles.inner}>
-          {/* Logo — drops in with warm glow */}
-          <img
-            src={logoVertical}
-            alt="DungeonMessage"
-            style={styles.logo}
-            className="landing-logo"
-          />
+      <div style={isDesktop ? desktop.wrap : styles.wrap}>
 
-          {/* Ornamental divider */}
-          <div
-            className="landing-fade-up landing-divider"
-            style={{ animationDelay: "0.38s" }}
-          >
-            <span className="landing-divider-line" />
-            <span className="landing-divider-gem">◆</span>
-            <span className="landing-divider-line" />
-          </div>
+        {isDesktop ? (
+          /* ── Desktop: 2-column ── */
+          <div style={desktop.inner}>
 
-          {/* Subtitle */}
-          <p
-            className="landing-fade-up"
-            style={{ ...styles.subtitle, animationDelay: "0.5s" }}
-          >
-            Private messages for your table.
-          </p>
-
-          {/* CTAs */}
-          <div
-            className="landing-fade-up"
-            style={{ ...styles.actions, animationDelay: "0.68s" }}
-          >
-            <Link
-              to="/start"
-              className="landing-btn landing-btn-start"
-              style={styles.startBtn}
-            >
-              <span style={styles.btnLabel}>Start a Table</span>
-              <span style={styles.btnRole}>Game Master</span>
-            </Link>
-
-            <Link
-              to="/join"
-              className="landing-btn landing-btn-join"
-              style={styles.joinBtn}
-            >
-              <span style={styles.btnLabel}>Join a Table</span>
-              <span style={styles.btnRole}>Adventurer</span>
-            </Link>
-          </div>
-
-          {/* How it works */}
-          <div
-            className="landing-fade-up"
-            style={{ ...styles.howItWorks, animationDelay: "0.9s" }}
-          >
-            <div style={styles.howDivider}>
-              <span style={styles.howDividerLine} />
-              <span style={styles.howDividerLabel}>How it works</span>
-              <span style={styles.howDividerLine} />
+            {/* Left: logo + subtitle + CTAs */}
+            <div style={desktop.leftCol}>
+              <img
+                src={logoVertical}
+                alt="DungeonMessage"
+                style={desktop.logo}
+                className="landing-logo"
+              />
+              <div
+                className="landing-fade-up landing-divider"
+                style={{ animationDelay: "0.38s", width: "100%" }}
+              >
+                <span className="landing-divider-line" />
+                <span className="landing-divider-gem">◆</span>
+                <span className="landing-divider-line" />
+              </div>
+              <p
+                className="landing-fade-up"
+                style={{ ...styles.subtitle, animationDelay: "0.5s" }}
+              >
+                Private messages for your table.
+              </p>
+              <div
+                className="landing-fade-up"
+                style={{ ...styles.actions, animationDelay: "0.68s" }}
+              >
+                <Link to="/start" className="landing-btn landing-btn-start" style={styles.startBtn}>
+                  <span style={styles.btnLabel}>Start a Table</span>
+                  <span style={styles.btnRole}>Game Master</span>
+                </Link>
+                <Link to="/join" className="landing-btn landing-btn-join" style={styles.joinBtn}>
+                  <span style={styles.btnLabel}>Join a Table</span>
+                  <span style={styles.btnRole}>Adventurer</span>
+                </Link>
+              </div>
             </div>
-            <div style={styles.steps}>
-              {[
-                { n: "I",   title: "Open a Table",   desc: "The GM starts a session and receives a short code to share with the party." },
-                { n: "II",  title: "Players Join",   desc: "Each player joins on their own device — no account or app required." },
-                { n: "III", title: "Send in Secret", desc: "Pass notes, clues, and images to any player. Only they will ever see it." },
-              ].map(({ n, title, desc }, i, arr) => (
-                <div key={n} style={styles.step}>
-                  {/* Left: numeral + connector */}
-                  <div style={styles.stepLeft}>
-                    <div style={styles.stepNumeralWrap}>
-                      <span style={styles.stepNumeral}>{n}</span>
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div style={styles.stepConnector} />
-                    )}
-                  </div>
-                  {/* Right: text */}
-                  <div style={{ ...styles.stepRight, paddingBottom: i < arr.length - 1 ? 20 : 0 }}>
-                    <span style={styles.stepTitle}>{title}</span>
-                    <span style={styles.stepDesc}>{desc}</span>
-                  </div>
-                </div>
-              ))}
+
+            {/* Vertical gold rule */}
+            <div style={desktop.colDivider} />
+
+            {/* Right: How it works */}
+            <div
+              className="landing-fade-up"
+              style={{ ...desktop.rightCol, animationDelay: "0.75s" }}
+            >
+              {howItWorks}
+            </div>
+
+          </div>
+        ) : (
+          /* ── Mobile: single column ── */
+          <div style={styles.inner}>
+            <img
+              src={logoVertical}
+              alt="DungeonMessage"
+              style={styles.logo}
+              className="landing-logo"
+            />
+            <div
+              className="landing-fade-up landing-divider"
+              style={{ animationDelay: "0.38s" }}
+            >
+              <span className="landing-divider-line" />
+              <span className="landing-divider-gem">◆</span>
+              <span className="landing-divider-line" />
+            </div>
+            <p
+              className="landing-fade-up"
+              style={{ ...styles.subtitle, animationDelay: "0.5s" }}
+            >
+              Private messages for your table.
+            </p>
+            <div
+              className="landing-fade-up"
+              style={{ ...styles.actions, animationDelay: "0.68s" }}
+            >
+              <Link to="/start" className="landing-btn landing-btn-start" style={styles.startBtn}>
+                <span style={styles.btnLabel}>Start a Table</span>
+                <span style={styles.btnRole}>Game Master</span>
+              </Link>
+              <Link to="/join" className="landing-btn landing-btn-join" style={styles.joinBtn}>
+                <span style={styles.btnLabel}>Join a Table</span>
+                <span style={styles.btnRole}>Adventurer</span>
+              </Link>
+            </div>
+            <div
+              className="landing-fade-up"
+              style={{ animationDelay: "0.9s", width: "100%" }}
+            >
+              {howItWorks}
             </div>
           </div>
-        </div>
+        )}
+
       </div>
     </div>
   );
 }
 
+/* ── Desktop-only layout styles ── */
+const desktop = {
+  wrap: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "48px 48px",
+  },
+
+  inner: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 0,
+    width: "min(960px, 100%)",
+  },
+
+  leftCol: {
+    flex: "1 1 0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    paddingRight: 48,
+  },
+
+  colDivider: {
+    width: 1,
+    alignSelf: "stretch",
+    background: "linear-gradient(to bottom, transparent, rgba(151,130,98,0.4) 20%, rgba(151,130,98,0.4) 80%, transparent)",
+    flexShrink: 0,
+  },
+
+  rightCol: {
+    flex: "1 1 0",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    paddingLeft: 48,
+  },
+
+  logo: {
+    width: "min(280px, 100%)",
+    height: "auto",
+    objectFit: "contain",
+    display: "block",
+    marginBottom: 8,
+  },
+};
+
+/* ── Shared / mobile styles ── */
 const styles = {
   page: {
     display: "flex",
@@ -151,8 +256,7 @@ const styles = {
     padding: "20px 40px",
     background: "#434135",
     border: "1px solid #978262",
-    boxShadow:
-      "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    boxShadow: "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
     color: "#F5ECCD",
     textDecoration: "none",
   },
@@ -185,7 +289,6 @@ const styles = {
   },
 
   howItWorks: {
-    marginTop: 48,
     width: "100%",
   },
 
