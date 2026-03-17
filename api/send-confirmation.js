@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   const { error: emailError } = await resend.emails.send({
     from: "DungeonMessage <noreply@dungeonmessage.com>",
     to: email,
-    subject: `Your table "${tableName}" is ready`,
+    subject: `Your table is ready — open this link on any device`,
     headers: {
       "List-Unsubscribe": "<mailto:gm@dungeonmessage.com?subject=unsubscribe>",
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -101,6 +101,11 @@ export default async function handler(req, res) {
                   </td>
                 </tr>
               </table>
+
+              <!-- Cross-device note -->
+              <p style="margin:0 0 24px;font-size:13px;line-height:1.7;color:#6A7984;font-family:Georgia,'Times New Roman',Times,serif;font-style:italic;">
+                This link is your key to your GM dashboard &mdash; works on laptop, phone, or tablet. Keep this email handy.
+              </p>
 
               <!-- Fallback URL -->
               <p style="margin:0;font-size:11px;color:#5c4e38;font-family:Helvetica,Arial,sans-serif;line-height:1.7;word-break:break-all;">

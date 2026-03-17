@@ -39,6 +39,12 @@ export default function Landing() {
             </div>
           </div>
         ))}
+      <div style={styles.featureCallout}>
+        <div style={styles.featureDivider} />
+        <p style={styles.featureTitle}>Works on any device</p>
+        <p style={styles.featureDesc}>
+          Start on laptop, switch to phone mid-session — your GM dashboard link goes wherever you do, no app or account required.
+        </p>
       </div>
     </div>
   );
@@ -290,6 +296,37 @@ const styles = {
 
   howItWorks: {
     width: "100%",
+  },
+
+  featureCallout: {
+    marginTop: 28,
+    width: "100%",
+    textAlign: "left",
+  },
+
+  featureDivider: {
+    height: 1,
+    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
+    marginBottom: 20,
+  },
+
+  featureTitle: {
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.875rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "#F5ECCD",
+    margin: "0 0 6px",
+  },
+
+  featureDesc: {
+    fontFamily: "var(--tw-font-message)",
+    fontStyle: "italic",
+    fontSize: "0.875rem",
+    lineHeight: 1.7,
+    color: "#8a7f6e",
+    margin: 0,
   },
 
   howDivider: {
