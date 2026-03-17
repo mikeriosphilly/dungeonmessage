@@ -322,10 +322,9 @@ const styles = {
   },
 
   featureDesc: {
-    fontFamily: "var(--tw-font-message)",
-    fontStyle: "italic",
+    fontFamily: "Lato, sans-serif",
     fontSize: "0.875rem",
-    lineHeight: 1.7,
+    lineHeight: 1.6,
     color: "#8a7f6e",
     margin: 0,
   },
