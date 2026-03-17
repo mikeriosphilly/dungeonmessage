@@ -39,6 +39,7 @@ export default function Landing() {
             </div>
           </div>
         ))}
+      </div>
       <div style={styles.featureCallout}>
         <div style={styles.featureDivider} />
         <p style={styles.featureTitle}>Works on any device</p>
