@@ -3,9 +3,21 @@ import { Link } from "react-router-dom";
 import logoVertical from "../assets/Logo-vertical.png";
 
 const STEPS = [
-  { n: "I",   title: "Open a Table",   desc: "The GM starts a session and receives a short code to share with the party." },
-  { n: "II",  title: "Players Join",   desc: "Each player joins on their own device — no account or app required." },
-  { n: "III", title: "Send in Secret", desc: "Pass notes, clues, and images to any player. Only they will ever see it." },
+  {
+    n: "I",
+    title: "Open a Table",
+    desc: "The GM starts a session and receives a short code to share with the party.",
+  },
+  {
+    n: "II",
+    title: "Players Join",
+    desc: "Each player joins on their own device — no account or app required.",
+  },
+  {
+    n: "III",
+    title: "Send in Secret",
+    desc: "Pass notes, clues, and images to any player. Only they will ever see it.",
+  },
 ];
 
 export default function Landing() {
@@ -33,7 +45,12 @@ export default function Landing() {
               </div>
               {i < arr.length - 1 && <div style={styles.stepConnector} />}
             </div>
-            <div style={{ ...styles.stepRight, paddingBottom: i < arr.length - 1 ? 20 : 0 }}>
+            <div
+              style={{
+                ...styles.stepRight,
+                paddingBottom: i < arr.length - 1 ? 20 : 0,
+              }}
+            >
               <span style={styles.stepTitle}>{title}</span>
               <span style={styles.stepDesc}>{desc}</span>
             </div>
@@ -44,7 +61,8 @@ export default function Landing() {
         <div style={styles.featureDivider} />
         <p style={styles.featureTitle}>Works on any device</p>
         <p style={styles.featureDesc}>
-          Start on laptop, switch to phone mid-session — your GM dashboard link goes wherever you do, no app or account required.
+          You'll receive a link to your GM dashboard that can be used on any
+          device, even if you switch to a different device mid-session.
         </p>
       </div>
     </div>
@@ -53,11 +71,9 @@ export default function Landing() {
   return (
     <div style={styles.page}>
       <div style={isDesktop ? desktop.wrap : styles.wrap}>
-
         {isDesktop ? (
           /* ── Desktop: 2-column ── */
           <div style={desktop.inner}>
-
             {/* Left: logo + subtitle + CTAs */}
             <div style={desktop.leftCol}>
               <img
@@ -84,11 +100,19 @@ export default function Landing() {
                 className="landing-fade-up"
                 style={{ ...styles.actions, animationDelay: "0.68s" }}
               >
-                <Link to="/start" className="landing-btn landing-btn-start" style={styles.startBtn}>
+                <Link
+                  to="/start"
+                  className="landing-btn landing-btn-start"
+                  style={styles.startBtn}
+                >
                   <span style={styles.btnLabel}>Start a Table</span>
                   <span style={styles.btnRole}>Game Master</span>
                 </Link>
-                <Link to="/join" className="landing-btn landing-btn-join" style={styles.joinBtn}>
+                <Link
+                  to="/join"
+                  className="landing-btn landing-btn-join"
+                  style={styles.joinBtn}
+                >
                   <span style={styles.btnLabel}>Join a Table</span>
                   <span style={styles.btnRole}>Adventurer</span>
                 </Link>
@@ -105,7 +129,6 @@ export default function Landing() {
             >
               {howItWorks}
             </div>
-
           </div>
         ) : (
           /* ── Mobile: single column ── */
@@ -134,11 +157,19 @@ export default function Landing() {
               className="landing-fade-up"
               style={{ ...styles.actions, animationDelay: "0.68s" }}
             >
-              <Link to="/start" className="landing-btn landing-btn-start" style={styles.startBtn}>
+              <Link
+                to="/start"
+                className="landing-btn landing-btn-start"
+                style={styles.startBtn}
+              >
                 <span style={styles.btnLabel}>Start a Table</span>
                 <span style={styles.btnRole}>Game Master</span>
               </Link>
-              <Link to="/join" className="landing-btn landing-btn-join" style={styles.joinBtn}>
+              <Link
+                to="/join"
+                className="landing-btn landing-btn-join"
+                style={styles.joinBtn}
+              >
                 <span style={styles.btnLabel}>Join a Table</span>
                 <span style={styles.btnRole}>Adventurer</span>
               </Link>
@@ -151,7 +182,6 @@ export default function Landing() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -187,7 +217,8 @@ const desktop = {
   colDivider: {
     width: 1,
     alignSelf: "stretch",
-    background: "linear-gradient(to bottom, transparent, rgba(151,130,98,0.4) 20%, rgba(151,130,98,0.4) 80%, transparent)",
+    background:
+      "linear-gradient(to bottom, transparent, rgba(151,130,98,0.4) 20%, rgba(151,130,98,0.4) 80%, transparent)",
     flexShrink: 0,
   },
 
@@ -263,7 +294,8 @@ const styles = {
     padding: "20px 40px",
     background: "#434135",
     border: "1px solid #978262",
-    boxShadow: "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
+    boxShadow:
+      "inset 0 0 18px 2px rgba(155, 127, 63, 0.8), 0 12px 36px rgba(0,0,0,0.55)",
     color: "#F5ECCD",
     textDecoration: "none",
   },
@@ -307,7 +339,8 @@ const styles = {
 
   featureDivider: {
     height: 1,
-    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
+    background:
+      "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
     marginBottom: 20,
   },
 
@@ -339,7 +372,8 @@ const styles = {
   howDividerLine: {
     flex: 1,
     height: 1,
-    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
+    background:
+      "linear-gradient(to right, transparent, rgba(151,130,98,0.3), transparent)",
   },
 
   howDividerLabel: {
@@ -397,7 +431,8 @@ const styles = {
     width: 1,
     flex: 1,
     minHeight: 20,
-    background: "linear-gradient(to bottom, rgba(151,130,98,0.35), rgba(151,130,98,0.08))",
+    background:
+      "linear-gradient(to bottom, rgba(151,130,98,0.35), rgba(151,130,98,0.08))",
   },
 
   stepRight: {

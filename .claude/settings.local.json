@@ -8,7 +8,9 @@
       "Bash(grep -rn \"Logo\\\\|message-images\\\\|OG_Image\" C:/Users/mikey/Documents/Dev/tablewhisper --exclude-dir=node_modules --exclude-dir=.git --exclude=\"*.lock\" 2>/dev/null | grep -v \".claude\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm run:*)",
+      "Bash(vercel:*)"
     ]
   }
 }
