@@ -2,19 +2,38 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { startTable } from "../services/backend";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function StartTable() {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const canStart = name.trim().length > 0 && !busy;
+  const canStart = name.trim().length > 0 && EMAIL_RE.test(email) && !busy;
 
   async function onStart() {
     setBusy(true);
     setError("");
     try {
       const table = await startTable(name.trim());
+      const tableUrl = `${window.location.origin}/gm/${table.gm_secret}`;
+
+      // Fire-and-forget — don't block navigation if email fails
+      fetch("/api/send-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          tableName: name.trim(),
+          tableUrl,
+          gmSecret: table.gm_secret,
+          marketingOptIn,
+        }),
+      }).catch(() => {});
+
       navigate(`/gm/${table.gm_secret}`);
     } catch (e) {
       setError(e?.message || "Something went wrong starting the table.");
@@ -70,6 +89,36 @@ export default function StartTable() {
               placeholder="The Gilded Goose Tavern"
               autoFocus
             />
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+              <label style={{ ...styles.label, marginBottom: 0 }}>Your email</label>
+              <span style={styles.fieldHint}>We'll send your table link here for safekeeping</span>
+            </div>
+            <input
+              style={styles.input}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && canStart && onStart()}
+              placeholder="gm@example.com"
+            />
+
+            <p style={styles.privacyNote}>
+              See our{" "}
+              <Link to="/privacy" target="_blank" style={styles.privacyLink}>
+                Privacy Policy
+              </Link>
+            </p>
+
+            <label style={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={marketingOptIn}
+                onChange={(e) => setMarketingOptIn(e.target.checked)}
+                style={styles.checkbox}
+              />
+              Keep me posted on DungeonMessage updates
+            </label>
 
             <button
               style={{
@@ -209,5 +258,46 @@ const styles = {
     letterSpacing: "0.04em",
     opacity: 0.7,
     transition: "opacity 0.15s",
+  },
+
+  fieldHint: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.75rem",
+    fontStyle: "italic",
+    color: "var(--tw-text-muted)",
+    opacity: 0.6,
+  },
+
+  privacyNote: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.78rem",
+    color: "var(--tw-text-muted)",
+    margin: "-8px 0 14px",
+    opacity: 0.7,
+  },
+
+  privacyLink: {
+    color: "#978262",
+    textDecoration: "none",
+  },
+
+  checkboxLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.85rem",
+    color: "var(--tw-text-muted)",
+    marginBottom: 20,
+    cursor: "pointer",
+    userSelect: "none",
+  },
+
+  checkbox: {
+    accentColor: "#978262",
+    width: 15,
+    height: 15,
+    flexShrink: 0,
+    cursor: "pointer",
   },
 };

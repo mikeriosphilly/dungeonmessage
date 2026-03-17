@@ -4,6 +4,7 @@ import StartTable from "./pages/StartTable";
 import JoinTable from "./pages/JoinTable";
 import GmDashboard from "./pages/GmDashboard";
 import PlayerFeed from "./pages/PlayerFeed";
+import Privacy from "./pages/Privacy";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabaseClient";
 
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/join" element={<JoinTable />} />
         <Route path="/gm/:gmSecret" element={<GmDashboard />} />
         <Route path="/table/:code" element={<PlayerFeed />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
