@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 import PlayerGrid from "../components/gm/PlayerGrid";
@@ -87,6 +87,17 @@ export default function GmDashboard() {
   const [sendingDraftId, setSendingDraftId] = useState(null);
   const { gmSecret } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [showEmailToast, setShowEmailToast] = useState(
+    () => !!location.state?.justCreated,
+  );
+
+  useEffect(() => {
+    if (!showEmailToast) return;
+    const t = setTimeout(() => setShowEmailToast(false), 30000);
+    return () => clearTimeout(t);
+  }, [showEmailToast]);
 
   const [table, setTable] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -940,6 +951,39 @@ export default function GmDashboard() {
             )}
           </div>
         </div>
+
+        {/* Email sent toast */}
+        {showEmailToast && (
+          <div
+            className="mt-5 flex items-start justify-between gap-3 px-4 py-3"
+            style={{
+              border: "1px solid rgba(151, 130, 98, 0.45)",
+              background: "rgba(151, 130, 98, 0.08)",
+              boxShadow: "0 0 18px rgba(151, 130, 98, 0.12), inset 0 0 12px rgba(151, 130, 98, 0.05)",
+            }}
+          >
+            <p className="text-sm leading-relaxed" style={{ color: "#B79E81", margin: 0 }}>
+              ✉ A confirmation email with your table link is on its way. If you don't see it shortly, check your Spam folder.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowEmailToast(false)}
+              style={{
+                flexShrink: 0,
+                background: "none",
+                border: "none",
+                color: "#6A7984",
+                cursor: "pointer",
+                fontSize: "1.1rem",
+                lineHeight: 1,
+                padding: "0 2px",
+              }}
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Errors */}
         {error && (

@@ -50,7 +50,7 @@ export default function StartTable() {
         }),
       }).catch(() => {});
 
-      navigate(`/gm/${table.gm_secret}`);
+      navigate(`/gm/${table.gm_secret}`, { state: { justCreated: true } });
     } catch (e) {
       setError(e?.message || "Something went wrong starting the table.");
     } finally {
@@ -313,11 +313,12 @@ const styles = {
     justifyContent: "space-between",
     gap: 14,
     padding: "14px 18px",
-    border: "1px solid rgba(245, 236, 205, 0.15)",
+    border: "1px solid rgba(151, 130, 98, 0.45)",
     background: "rgba(255,255,255,0.03)",
     marginBottom: 24,
     textAlign: "left",
     boxSizing: "border-box",
+    boxShadow: "0 0 18px rgba(151, 130, 98, 0.18), inset 0 0 12px rgba(151, 130, 98, 0.06)",
   },
 
   resumeText: {
