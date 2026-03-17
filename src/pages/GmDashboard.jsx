@@ -92,10 +92,16 @@ export default function GmDashboard() {
   const [showEmailToast, setShowEmailToast] = useState(
     () => !!location.state?.justCreated,
   );
+  const [toastDismissing, setToastDismissing] = useState(false);
+
+  function dismissToast() {
+    setToastDismissing(true);
+    setTimeout(() => setShowEmailToast(false), 650);
+  }
 
   useEffect(() => {
     if (!showEmailToast) return;
-    const t = setTimeout(() => setShowEmailToast(false), 30000);
+    const t = setTimeout(() => dismissToast(), 30000);
     return () => clearTimeout(t);
   }, [showEmailToast]);
 
@@ -955,33 +961,44 @@ export default function GmDashboard() {
         {/* Email sent toast */}
         {showEmailToast && (
           <div
-            className="mt-5 flex items-start justify-between gap-3 px-4 py-3"
             style={{
-              border: "1px solid rgba(151, 130, 98, 0.45)",
-              background: "rgba(151, 130, 98, 0.08)",
-              boxShadow: "0 0 18px rgba(151, 130, 98, 0.12), inset 0 0 12px rgba(151, 130, 98, 0.05)",
+              overflow: "hidden",
+              maxHeight: toastDismissing ? 0 : "120px",
+              marginTop: toastDismissing ? 0 : "20px",
+              transition: "max-height 0.4s ease 0.2s, margin-top 0.4s ease 0.2s",
             }}
           >
-            <p className="text-sm leading-relaxed" style={{ color: "#B79E81", margin: 0 }}>
-              ✉ A confirmation email with your table link is on its way. If you don't see it shortly, check your Spam folder.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowEmailToast(false)}
+            <div
+              className="flex items-start justify-between gap-3 px-4 py-3"
               style={{
-                flexShrink: 0,
-                background: "none",
-                border: "none",
-                color: "#6A7984",
-                cursor: "pointer",
-                fontSize: "1.1rem",
-                lineHeight: 1,
-                padding: "0 2px",
+                border: "1px solid rgba(151, 130, 98, 0.45)",
+                background: "rgba(151, 130, 98, 0.08)",
+                boxShadow: "0 0 18px rgba(151, 130, 98, 0.12), inset 0 0 12px rgba(151, 130, 98, 0.05)",
+                opacity: toastDismissing ? 0 : 1,
+                transition: "opacity 0.25s ease",
               }}
-              aria-label="Dismiss"
             >
-              ✕
-            </button>
+              <p className="text-sm leading-relaxed" style={{ color: "#B79E81", margin: 0 }}>
+                ✉ A confirmation email with your table link is on its way. If you don't see it shortly, check your Spam folder.
+              </p>
+              <button
+                type="button"
+                onClick={dismissToast}
+                style={{
+                  flexShrink: 0,
+                  background: "none",
+                  border: "none",
+                  color: "#6A7984",
+                  cursor: "pointer",
+                  fontSize: "1.1rem",
+                  lineHeight: 1,
+                  padding: "0 2px",
+                }}
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
 
