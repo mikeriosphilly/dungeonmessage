@@ -45,8 +45,8 @@ export default async function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your table is ready</title>
 </head>
-<body style="margin:0;padding:0;background-color:#2c2e33;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#2c2e33;">
+<body style="margin:0;padding:0;background-color:#0a0907;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0907;">
     <tr>
       <td align="center" style="padding:40px 16px;">
 
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
 
           <!-- FOOTER -->
           <tr>
-            <td style="background-color:#2c2e33;border:1px solid #5c4e38;border-top:none;padding:20px 40px;">
+            <td style="background-color:#0a0907;border:1px solid #5c4e38;border-top:none;padding:20px 40px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="border-top:1px solid #2a2316;padding-top:18px;">
