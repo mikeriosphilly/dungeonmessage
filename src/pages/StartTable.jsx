@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { startTable } from "../services/backend";
 
@@ -10,7 +10,19 @@ export default function StartTable() {
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [lastGmSession, setLastGmSession] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const raw = localStorage.getItem("tw_gm_session");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.gmSecret) setLastGmSession(parsed);
+    } catch {
+      localStorage.removeItem("tw_gm_session");
+    }
+  }, []);
 
   const canStart = name.trim().length > 0 && EMAIL_RE.test(email) && !busy;
 
@@ -20,6 +32,10 @@ export default function StartTable() {
     try {
       const table = await startTable(name.trim());
       const tableUrl = `${window.location.origin}/gm/${table.gm_secret}`;
+      localStorage.setItem("tw_gm_session", JSON.stringify({
+        gmSecret: table.gm_secret,
+        tableName: name.trim(),
+      }));
 
       // Fire-and-forget — don't block navigation if email fails
       fetch("/api/send-confirmation", {
@@ -74,6 +90,28 @@ export default function StartTable() {
             <br />
             for your table, and a code for your players.
           </p>
+
+          {/* Resume GM session */}
+          {lastGmSession && (
+            <div
+              className="landing-fade-up"
+              style={{ ...styles.resumeBox, animationDelay: "0.38s" }}
+            >
+              <div style={styles.resumeText}>
+                <span style={styles.resumeLabel}>Your last table</span>
+                <span style={styles.resumeDetail}>
+                  <strong style={{ color: "#D5CDBE" }}>{lastGmSession.tableName}</strong>
+                </span>
+              </div>
+              <Link
+                to={`/gm/${lastGmSession.gmSecret}`}
+                style={styles.rejoinBtn}
+                className="landing-btn-start"
+              >
+                Return to dashboard
+              </Link>
+            </div>
+          )}
 
           {/* Form */}
           <div
@@ -266,6 +304,60 @@ const styles = {
     fontStyle: "italic",
     color: "var(--tw-text-muted)",
     opacity: 0.6,
+  },
+
+  resumeBox: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+    padding: "14px 18px",
+    border: "1px solid rgba(245, 236, 205, 0.15)",
+    background: "rgba(255,255,255,0.03)",
+    marginBottom: 24,
+    textAlign: "left",
+    boxSizing: "border-box",
+  },
+
+  resumeText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+    minWidth: 0,
+  },
+
+  resumeLabel: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.7rem",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "var(--tw-text-muted)",
+  },
+
+  resumeDetail: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.9rem",
+    color: "var(--tw-text-muted)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  rejoinBtn: {
+    flexShrink: 0,
+    padding: "10px 16px",
+    background: "#434135",
+    border: "1px solid #978262",
+    boxShadow: "inset 0 0 12px 1px rgba(155, 127, 63, 0.7)",
+    color: "#F5ECCD",
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1rem",
+    letterSpacing: "0.03em",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    textDecoration: "none",
+    transition: "transform 0.15s ease, filter 0.15s ease",
   },
 
   privacyNote: {
