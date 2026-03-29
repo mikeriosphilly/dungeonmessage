@@ -71,12 +71,13 @@ export default function JoinTable() {
     try {
       const parsed = JSON.parse(raw);
       if (!parsed?.tableCode) return;
-      setLastSession(parsed);
       (async () => {
         const { data } = await supabase.rpc("get_table_public", { p_code: parsed.tableCode });
         const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
-        if (table?.name) setLastTableName(table.name);
+        if (!table?.name) return;
+        setLastSession(parsed);
+        setLastTableName(table.name);
       })();
     } catch {
       localStorage.removeItem("tw_last_session");

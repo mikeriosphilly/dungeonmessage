@@ -94,7 +94,7 @@ export default function Landing() {
                 className="landing-fade-up"
                 style={{ ...styles.subtitle, animationDelay: "0.5s" }}
               >
-                Private messages for your table.
+                Send private messages to players at your table..
               </p>
               <div
                 className="landing-fade-up"
@@ -151,7 +151,7 @@ export default function Landing() {
               className="landing-fade-up"
               style={{ ...styles.subtitle, animationDelay: "0.5s" }}
             >
-              Private messages for your table.
+              Send private messages to players at your table.
             </p>
             <div
               className="landing-fade-up"

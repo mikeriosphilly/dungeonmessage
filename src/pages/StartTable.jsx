@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { startTable } from "../services/backend";
+import { supabase } from "../lib/supabaseClient";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,7 +19,15 @@ export default function StartTable() {
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw);
-      if (parsed?.gmSecret) setLastGmSession(parsed);
+      if (!parsed?.gmSecret) return;
+      (async () => {
+        const { data, error } = await supabase.rpc("gm_get_table", {
+          p_gm_secret: parsed.gmSecret,
+        });
+        const table = data?.table || null;
+        if (error || !table) return;
+        setLastGmSession(parsed);
+      })();
     } catch {
       localStorage.removeItem("tw_gm_session");
     }

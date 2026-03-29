@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
@@ -7,6 +7,7 @@ import MessageLog from "../components/gm/MessageLog";
 import MessageComposer from "../components/gm/MessageComposer";
 import { avatarSrcFromKey } from "../lib/avatars";
 import { Send, Trash2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import AppHeader from "../components/AppHeader";
 import bgPaper from "../assets/bg_paper.jpg";
 import bgWood from "../assets/bg_wood.jpg";
@@ -125,6 +126,13 @@ export default function GmDashboard() {
   // copied state
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // share dropdown + QR lightbox
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [showQrLightbox, setShowQrLightbox] = useState(false);
+  const [copiedDropItem, setCopiedDropItem] = useState(false);
+  const shareDropdownRef = useRef(null);
+  const qrSvgRef = useRef(null);
 
   // drafts accordion
   const [draftsOpen, setDraftsOpen] = useState(false);
@@ -795,6 +803,53 @@ export default function GmDashboard() {
     await copyShareLink();
   }
 
+  // Close share dropdown on outside click
+  useEffect(() => {
+    if (!showShareDropdown) return;
+    function handleOutside(e) {
+      if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target)) {
+        setShowShareDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [showShareDropdown]);
+
+  // Close QR lightbox on Escape
+  useEffect(() => {
+    if (!showQrLightbox) return;
+    function handleEscape(e) {
+      if (e.key === "Escape") setShowQrLightbox(false);
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showQrLightbox]);
+
+  function downloadQr() {
+    const svgEl = qrSvgRef.current?.querySelector("svg");
+    if (!svgEl) return;
+    const size = 560;
+    const serialized = new XMLSerializer().serializeToString(svgEl);
+    const svgBlob = new Blob([serialized], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      const a = document.createElement("a");
+      a.download = "dungeonmessage-qr.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = url;
+  }
+
   const sendDisabled =
     sending ||
     imageUploading ||
@@ -916,6 +971,7 @@ export default function GmDashboard() {
 
             {/* Action buttons */}
             <div className="flex items-center justify-center gap-2">
+              {/* Copy code button — checkmark flash on success */}
               <button
                 type="button"
                 onClick={copyRoomCode}
@@ -926,35 +982,119 @@ export default function GmDashboard() {
                   background: "rgba(151,130,98,0.12)",
                   color: "#D5CDBE",
                   letterSpacing: "0.1em",
+                  minWidth: 72,
                 }}
-                title="Copy join link"
+                title="Copy room code"
               >
-                <IconCopy />
-                Copy
+                {copiedCode ? (
+                  <span style={{ color: "#8fcf8f", fontSize: "1rem", lineHeight: 1 }}>✓</span>
+                ) : (
+                  <IconCopy />
+                )}
+                {copiedCode ? "Copied" : "Copy"}
               </button>
-              <button
-                type="button"
-                onClick={nativeShare}
-                disabled={!shareUrl}
-                className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{
-                  border: "1px solid rgba(151,130,98,0.45)",
-                  background: "rgba(151,130,98,0.12)",
-                  color: "#D5CDBE",
-                  letterSpacing: "0.1em",
-                }}
-                title="Share"
-              >
-                <IconShare />
-                Share
-              </button>
-            </div>
 
-            {(copiedCode || copiedLink) && (
-              <div className="mt-1.5 text-center text-xs font-semibold" style={{ color: "#B79E81" }}>
-                {copiedCode ? "Copied!" : "Link copied!"}
+              {/* Share button — click-triggered dropdown */}
+              <div style={{ position: "relative" }} ref={shareDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowShareDropdown((v) => !v)}
+                  disabled={!shareUrl}
+                  className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{
+                    border: "1px solid rgba(151,130,98,0.45)",
+                    background: "rgba(151,130,98,0.12)",
+                    color: "#D5CDBE",
+                    letterSpacing: "0.1em",
+                  }}
+                  title="Share"
+                >
+                  <IconShare />
+                  Share
+                </button>
+
+                {showShareDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      right: 0,
+                      zIndex: 50,
+                      minWidth: 160,
+                      border: "1px solid rgba(151,130,98,0.55)",
+                      background: "linear-gradient(160deg, rgba(30,24,18,0.97) 0%, rgba(20,16,12,0.99) 100%)",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(151,130,98,0.1) inset",
+                      padding: "4px 0",
+                    }}
+                  >
+                    {/* Copy link */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await copyShareLink();
+                        setCopiedDropItem(true);
+                        setTimeout(() => {
+                          setCopiedDropItem(false);
+                          setShowShareDropdown(false);
+                        }, 1500);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#D5CDBE",
+                        letterSpacing: "0.08em",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      {copiedDropItem ? (
+                        <>
+                          <span style={{ color: "#8fcf8f", fontSize: "1rem", lineHeight: 1 }}>✓</span>
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <IconCopy />
+                          Copy link
+                        </>
+                      )}
+                    </button>
+
+                    <div style={{ height: 1, background: "rgba(151,130,98,0.18)", margin: "2px 8px" }} />
+
+                    {/* Show QR Code */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowShareDropdown(false);
+                        setShowQrLightbox(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#D5CDBE",
+                        letterSpacing: "0.08em",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
+                        <rect x="14" y="14" width="3" height="3" rx="0.5" />
+                        <rect x="19" y="14" width="2" height="2" rx="0.5" />
+                        <rect x="14" y="19" width="2" height="2" rx="0.5" />
+                        <rect x="18" y="19" width="3" height="2" rx="0.5" />
+                      </svg>
+                      Show QR Code
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -1287,6 +1427,133 @@ export default function GmDashboard() {
             </div>
           </div>
         </div>
+
+        {/* QR Code Lightbox */}
+        {showQrLightbox && (
+          <div
+            onClick={() => setShowQrLightbox(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 100,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(8,5,3,0.82)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              animation: "qrFadeIn 0.18s ease",
+            }}
+          >
+            <style>{`
+              @keyframes qrFadeIn {
+                from { opacity: 0; }
+                to   { opacity: 1; }
+              }
+              @keyframes qrCardIn {
+                from { opacity: 0; transform: scale(0.92); }
+                to   { opacity: 1; transform: scale(1); }
+              }
+            `}</style>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                padding: "28px 28px 20px",
+                border: "1px solid rgba(151,130,98,0.55)",
+                background: "linear-gradient(160deg, rgba(28,22,14,0.98) 0%, rgba(18,14,9,1) 100%)",
+                boxShadow: "0 0 0 1px rgba(151,130,98,0.1) inset, 0 24px 64px rgba(0,0,0,0.8)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 16,
+                animation: "qrCardIn 0.2s ease",
+              }}
+            >
+              {/* Corner filigree */}
+              <span style={{ position:"absolute", top:5, left:6, fontSize:10, color:"rgba(151,130,98,0.5)", lineHeight:1, userSelect:"none" }}>✦</span>
+              <span style={{ position:"absolute", top:5, right:6, fontSize:10, color:"rgba(151,130,98,0.5)", lineHeight:1, userSelect:"none" }}>✦</span>
+              <span style={{ position:"absolute", bottom:5, left:6, fontSize:10, color:"rgba(151,130,98,0.5)", lineHeight:1, userSelect:"none" }}>✦</span>
+              <span style={{ position:"absolute", bottom:5, right:6, fontSize:10, color:"rgba(151,130,98,0.5)", lineHeight:1, userSelect:"none" }}>✦</span>
+
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setShowQrLightbox(false)}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 10,
+                  background: "none",
+                  border: "none",
+                  color: "rgba(184,173,150,0.55)",
+                  cursor: "pointer",
+                  fontSize: "1.1rem",
+                  lineHeight: 1,
+                  padding: "2px 4px",
+                  transition: "color 0.15s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#D5CDBE"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "rgba(184,173,150,0.55)"}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+
+              {/* Label */}
+              <div style={{ fontFamily: "Lato, sans-serif", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#978262" }}>
+                Scan to Join
+              </div>
+
+              {/* QR code */}
+              <div
+                ref={qrSvgRef}
+                style={{
+                  background: "#ffffff",
+                  padding: 12,
+                  lineHeight: 0,
+                  border: "2px solid rgba(151,130,98,0.35)",
+                }}
+              >
+                <QRCodeSVG
+                  value={shareUrl}
+                  size={280}
+                  level="H"
+                  imageSettings={{
+                    src: "/Logo-stamp.png",
+                    height: 52,
+                    width: 52,
+                    excavate: true,
+                  }}
+                />
+              </div>
+
+              {/* URL hint */}
+              <div style={{ fontSize: 10, color: "rgba(184,173,150,0.5)", letterSpacing: "0.04em", maxWidth: 280, textAlign: "center", wordBreak: "break-all" }}>
+                {shareUrl}
+              </div>
+
+              {/* Download button */}
+              <button
+                type="button"
+                onClick={downloadQr}
+                className="flex cursor-pointer items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all hover:brightness-125"
+                style={{
+                  border: "1px solid rgba(151,130,98,0.45)",
+                  background: "rgba(151,130,98,0.12)",
+                  color: "#D5CDBE",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M12 4v12m0 0l-4-4m4 4l4-4" />
+                  <path d="M4 20h16" />
+                </svg>
+                Download QR
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
