@@ -638,6 +638,21 @@ export default function GmDashboard() {
     }
   }
 
+  async function removePlayer(playerId, displayName) {
+    if (!window.confirm(`Remove ${displayName} from the table?`)) return;
+    setError("");
+    try {
+      const { error } = await supabase.rpc("gm_remove_player", {
+        p_gm_secret: gmSecret,
+        p_player_id: playerId,
+      });
+      if (error) throw error;
+      await loadPlayers();
+    } catch (e) {
+      setError(e.message || "Failed to remove player.");
+    }
+  }
+
   async function sendMessage() {
     if (!table?.id) return;
     if (!draft.trim() && !imageFile && !imagePreviewUrl) return;
@@ -1197,7 +1212,7 @@ export default function GmDashboard() {
                 playerChips.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-2 rounded-full border pr-3"
+                    className="group flex items-center gap-2 rounded-full border pr-1"
                     style={{
                       borderColor: "rgba(151,130,98,0.3)",
                       background: "rgba(255,255,255,0.04)",
@@ -1223,9 +1238,29 @@ export default function GmDashboard() {
                         </div>
                       )}
                     </div>
-                    <span className="text-sm" style={{ color: "var(--tw-text)" }}>
+                    <span className="text-sm pr-1" style={{ color: "var(--tw-text)" }}>
                       {p.name}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => removePlayer(p.id, p.name)}
+                      title={`Remove ${p.name}`}
+                      className="opacity-0 group-hover:opacity-100 flex-shrink-0 flex items-center justify-center transition-opacity"
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        background: "rgba(80,10,10,0.75)",
+                        border: "1px solid rgba(139,32,32,0.6)",
+                        color: "rgba(245,160,160,0.9)",
+                        fontSize: "0.6rem",
+                        lineHeight: 1,
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))
               )}

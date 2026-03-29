@@ -17,6 +17,7 @@ export default function JoinTable() {
   const [error, setError] = useState("");
 
   const [tableOk, setTableOk] = useState(false);
+  const [tableName, setTableName] = useState("");
   const [authReady, setAuthReady] = useState(false);
 
   const [lastSession, setLastSession] = useState(null);
@@ -104,6 +105,7 @@ export default function JoinTable() {
   useEffect(() => {
     const trimmed = code.trim().toUpperCase();
     setTableOk(false);
+    setTableName("");
     if (!authReady || trimmed.length < 4) { setError(""); return; }
     let cancelled = false;
     const t = setTimeout(async () => {
@@ -118,6 +120,7 @@ export default function JoinTable() {
         const last = table.last_gm_activity_at ? new Date(table.last_gm_activity_at).getTime() : 0;
         void last; void GM_INACTIVITY_HOURS;
         setTableOk(true);
+        setTableName(table.name || "");
         setError("");
       } catch (e) {
         if (!cancelled) setError("Could not validate table.");
@@ -233,6 +236,12 @@ export default function JoinTable() {
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="K7F9Q"
           />
+
+          {tableOk && tableName && (
+            <div style={styles.tableNameHint}>
+              ✦ {tableName}
+            </div>
+          )}
 
           {/* Avatar */}
           <label style={styles.label}>Your avatar</label>
@@ -456,6 +465,15 @@ const styles = {
 
   inputOk: {
     borderColor: "rgba(155, 127, 63, 0.7)",
+  },
+
+  tableNameHint: {
+    marginTop: 7,
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "0.95rem",
+    letterSpacing: "0.06em",
+    color: "#B79E81",
+    textAlign: "center",
   },
 
   avatarRow: {
