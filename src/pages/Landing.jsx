@@ -57,22 +57,41 @@ export default function Landing() {
   }, []);
 
   const [whisperVisible, setWhisperVisible] = useState(false);
+  const [visibleItems, setVisibleItems] = useState(() => WHISPER_ITEMS.map(() => false));
   const whisperRef = useRef(null);
+  const itemRefs = useRef([]);
 
   useEffect(() => {
-    const el = whisperRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setWhisperVisible(true);
-          observer.disconnect();
-        }
-      },
+    // Header: fire when section first peeks into view
+    const headerEl = whisperRef.current;
+    if (!headerEl) return;
+    const headerObs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setWhisperVisible(true); headerObs.disconnect(); } },
       { threshold: 0.06 }
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+    headerObs.observe(headerEl);
+
+    // Each item: fire individually as user scrolls to it
+    const itemObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const i = Number(entry.target.dataset.whisperIdx);
+            setVisibleItems((prev) => {
+              if (prev[i]) return prev;
+              const next = [...prev];
+              next[i] = true;
+              return next;
+            });
+            itemObs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.18 }
+    );
+    itemRefs.current.forEach((el) => el && itemObs.observe(el));
+
+    return () => { headerObs.disconnect(); itemObs.disconnect(); };
   }, []);
 
   const howItWorks = (
@@ -261,13 +280,15 @@ export default function Landing() {
 
         {/* Sub-sections */}
         <div style={whisper.items}>
-          {WHISPER_ITEMS.map(({ numeral, heading, body, media }, i) => (
+          {WHISPER_ITEMS.map(({ heading, body, media }, i) => (
             <div
-              key={numeral}
+              key={i}
+              ref={(el) => { itemRefs.current[i] = el; }}
+              data-whisper-idx={i}
               style={{
                 ...whisper.item,
-                ...(whisperVisible
-                  ? { animation: `whisperFadeUp 0.85s ${0.2 + i * 0.18}s cubic-bezier(0.22,1,0.36,1) both` }
+                ...(visibleItems[i]
+                  ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
                   : { opacity: 0 }),
               }}
             >
@@ -275,9 +296,8 @@ export default function Landing() {
               <div style={whisper.itemAccent} />
 
               <div style={whisper.itemBody}>
-                {/* Numeral + heading row */}
+                {/* Heading */}
                 <div style={whisper.itemHeadRow}>
-                  <span style={whisper.itemNumeral}>{numeral}</span>
                   <h3 style={whisper.itemHeading}>{heading}</h3>
                 </div>
 
