@@ -32,7 +32,11 @@ export default function Footer() {
     <>
       <footer style={s.footer}>
         <style>{`
-          .dm-footer-link:hover { color: rgba(184,173,150,0.7) !important; }
+          .dm-feedback-btn:hover {
+            color: #D5CDBE !important;
+            text-decoration-color: rgba(151,130,98,0.6) !important;
+          }
+          .dm-footer-link:hover { color: rgba(184,173,150,0.65) !important; }
           .dm-modal-close:hover { color: rgba(213,205,190,0.8) !important; }
           @keyframes dmModalIn {
             from { opacity: 0; transform: scale(0.93); }
@@ -48,8 +52,8 @@ export default function Footer() {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            style={s.link}
-            className="dm-footer-link"
+            style={s.feedbackBtn}
+            className="dm-feedback-btn"
           >
             Send feedback
           </button>
@@ -69,12 +73,6 @@ export default function Footer() {
           role="dialog"
         >
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
-            {/* Corner filigrees */}
-            <span style={{ ...s.orn, top: 5, left: 6 }}>✦</span>
-            <span style={{ ...s.orn, top: 5, right: 6 }}>✦</span>
-            <span style={{ ...s.orn, bottom: 5, left: 6 }}>✦</span>
-            <span style={{ ...s.orn, bottom: 5, right: 6 }}>✦</span>
-
             {/* Close button */}
             <button
               type="button"
@@ -108,7 +106,6 @@ export default function Footer() {
 const s = {
   footer: {
     width: "100%",
-    borderTop: "1px solid rgba(151,130,98,0.16)",
     background: "transparent",
     padding: "0 20px",
     minHeight: 46,
@@ -123,7 +120,7 @@ const s = {
 
   copy: {
     fontFamily: "Lato, sans-serif",
-    fontSize: "0.68rem",
+    fontSize: "0.75rem",
     color: "rgba(151,130,98,0.4)",
     letterSpacing: "0.02em",
     whiteSpace: "nowrap",
@@ -135,9 +132,26 @@ const s = {
     gap: 8,
   },
 
+  feedbackBtn: {
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.75rem",
+    letterSpacing: "0.08em",
+    color: "#B79E81",
+    cursor: "pointer",
+    background: "none",
+    border: "none",
+    padding: 0,
+    textDecoration: "underline",
+    textDecorationColor: "rgba(151,130,98,0.35)",
+    textUnderlineOffset: "3px",
+    textDecorationStyle: "dotted",
+    transition: "color 0.15s, text-decoration-color 0.15s",
+  },
+
   link: {
     fontFamily: "Lato, sans-serif",
-    fontSize: "0.68rem",
+    fontSize: "0.75rem",
     color: "rgba(151,130,98,0.4)",
     letterSpacing: "0.02em",
     cursor: "pointer",
@@ -150,7 +164,7 @@ const s = {
 
   sep: {
     fontFamily: "Lato, sans-serif",
-    fontSize: "0.68rem",
+    fontSize: "0.75rem",
     color: "rgba(151,130,98,0.22)",
     userSelect: "none",
   },
@@ -178,14 +192,6 @@ const s = {
     background: "linear-gradient(160deg, rgba(28,22,14,0.99) 0%, rgba(18,14,9,1) 100%)",
     boxShadow: "0 0 0 1px rgba(151,130,98,0.08) inset, 0 24px 64px rgba(0,0,0,0.85)",
     animation: "dmModalIn 0.2s cubic-bezier(0.22,1,0.36,1) both",
-  },
-
-  orn: {
-    position: "absolute",
-    fontSize: 9,
-    color: "rgba(151,130,98,0.45)",
-    lineHeight: 1,
-    userSelect: "none",
   },
 
   closeBtn: {
