@@ -189,7 +189,7 @@ const s = {
   footer: {
     width: "100%",
     borderTop: "1px solid rgba(151,130,98,0.16)",
-    background: "#0a0907",
+    background: "transparent",
     padding: "0 20px",
     minHeight: 46,
     display: "flex",
