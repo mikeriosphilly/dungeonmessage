@@ -76,7 +76,7 @@ body {
   color: var(--tw-text);
   position: relative;
   /* Extend body into the bottom safe area so the background fills it. */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   /* Fallback color + iOS status bar safe area color.
      Must match AppHeader background (#0a0907) so the strip behind
      the status bar icons blends with the header. */
