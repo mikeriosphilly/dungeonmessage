@@ -135,6 +135,8 @@ export default function Landing() {
 
   return (
     <div style={styles.page}>
+      {/* ── Hero stage ── */}
+      <div style={heroShell}>
       <div style={isDesktop ? desktop.wrap : styles.wrap}>
         {isDesktop ? (
           /* ── Desktop: 2-column ── */
@@ -248,6 +250,7 @@ export default function Landing() {
           </div>
         )}
       </div>
+      </div>{/* /heroShell */}
 
       {/* ── Whisper Section ── */}
       <section ref={whisperRef} style={whisper.section}>
@@ -257,13 +260,6 @@ export default function Landing() {
             to   { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-
-        {/* Section rule + ornament */}
-        <div style={whisper.rule}>
-          <div style={whisper.ruleLine} />
-          <span style={whisper.ruleOrn}>✦ ◆ ✦</span>
-          <div style={whisper.ruleLine} />
-        </div>
 
         {/* Header */}
         <div
@@ -337,6 +333,12 @@ export default function Landing() {
   );
 }
 
+/* ── Hero stage ── */
+const heroShell = {
+  width: "100%",
+  background: "radial-gradient(at 50% 0%, rgb(33, 36, 39) 0%, rgb(20, 23, 27) 55%, rgb(11, 12, 14) 100%)",
+};
+
 /* ── Desktop-only layout styles ── */
 const desktop = {
   wrap: {
@@ -344,7 +346,7 @@ const desktop = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "48px 48px",
+    padding: "100px 48px",
   },
 
   inner: {
@@ -402,7 +404,7 @@ const styles = {
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "center",
-    padding: "80px 24px",
+    padding: "56px 24px",
   },
 
   inner: {
@@ -613,33 +615,10 @@ const styles = {
 const whisper = {
   section: {
     width: "100%",
-    padding: "0 24px 96px",
+    padding: "68px 24px 80px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-  },
-
-  rule: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-    width: "min(720px, 100%)",
-    marginBottom: 48,
-  },
-
-  ruleLine: {
-    flex: 1,
-    height: 1,
-    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.35), transparent)",
-  },
-
-  ruleOrn: {
-    fontFamily: "Lato, sans-serif",
-    fontSize: "0.65rem",
-    letterSpacing: "0.3em",
-    color: "rgba(151,130,98,0.5)",
-    userSelect: "none",
-    whiteSpace: "nowrap",
   },
 
   header: {
