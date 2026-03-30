@@ -197,8 +197,8 @@ const s = {
     justifyContent: "space-between",
     flexWrap: "wrap",
     gap: "6px 12px",
-    paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
-    paddingTop: 12,
+    paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6px)",
+    paddingTop: 6,
   },
 
   copy: {
