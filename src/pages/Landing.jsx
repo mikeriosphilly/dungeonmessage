@@ -1,6 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import logoVertical from "../assets/Logo-vertical.png";
+
+const WHISPER_ITEMS = [
+  {
+    numeral: "I",
+    heading: "Share your table in seconds",
+    body: "The GM opens a table and gets a unique code. Share it as a link, display the QR code on screen, or just read it out loud. Players join instantly on any device with no app and no account required.",
+    media: { type: "video", src: "/howto/howto-share.webm" },
+  },
+  {
+    numeral: "II",
+    heading: "Craft and send your message",
+    body: "Type your message and attach an image if you want, such as a character portrait, a town map, or a handout. Then choose exactly who receives it. One player, several, or all of them. Nobody else at the table will ever see it.",
+    media: { type: "video", src: "/howto/howto-send.webm" },
+  },
+  {
+    numeral: "III",
+    heading: "Players receive it privately",
+    body: "A sealed envelope appears on their screen. They open it on their own time, discreetly. Perfect for sharing character portraits, location art, and handouts without cluttering your group chat.",
+    media: {
+      type: "images",
+      items: [
+        { src: "/howto/howto-envelope.jpg", alt: "Sealed envelope appearing on a player's screen" },
+        { src: "/howto/howto-messagewithimage.jpg", alt: "Private message with an image attachment" },
+      ],
+    },
+  },
+];
 
 const STEPS = [
   {
@@ -27,6 +54,25 @@ export default function Landing() {
     const check = () => setIsDesktop(window.innerWidth >= 700);
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const [whisperVisible, setWhisperVisible] = useState(false);
+  const whisperRef = useRef(null);
+
+  useEffect(() => {
+    const el = whisperRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setWhisperVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.06 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const howItWorks = (
@@ -183,6 +229,90 @@ export default function Landing() {
           </div>
         )}
       </div>
+
+      {/* ── Whisper Section ── */}
+      <section ref={whisperRef} style={whisper.section}>
+        <style>{`
+          @keyframes whisperFadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+
+        {/* Section rule + ornament */}
+        <div style={whisper.rule}>
+          <div style={whisper.ruleLine} />
+          <span style={whisper.ruleOrn}>✦ ◆ ✦</span>
+          <div style={whisper.ruleLine} />
+        </div>
+
+        {/* Header */}
+        <div
+          style={{
+            ...whisper.header,
+            ...(whisperVisible
+              ? { animation: "whisperFadeUp 0.9s 0.05s cubic-bezier(0.22,1,0.36,1) both" }
+              : { opacity: 0 }),
+          }}
+        >
+          <h2 style={whisper.heading}>I need to whisper something to you...</h2>
+          <p style={whisper.intro}>Every GM has said it. Now you can send it.</p>
+        </div>
+
+        {/* Sub-sections */}
+        <div style={whisper.items}>
+          {WHISPER_ITEMS.map(({ numeral, heading, body, media }, i) => (
+            <div
+              key={numeral}
+              style={{
+                ...whisper.item,
+                ...(whisperVisible
+                  ? { animation: `whisperFadeUp 0.85s ${0.2 + i * 0.18}s cubic-bezier(0.22,1,0.36,1) both` }
+                  : { opacity: 0 }),
+              }}
+            >
+              {/* Left accent bar */}
+              <div style={whisper.itemAccent} />
+
+              <div style={whisper.itemBody}>
+                {/* Numeral + heading row */}
+                <div style={whisper.itemHeadRow}>
+                  <span style={whisper.itemNumeral}>{numeral}</span>
+                  <h3 style={whisper.itemHeading}>{heading}</h3>
+                </div>
+
+                {/* Body */}
+                <p style={whisper.itemText}>{body}</p>
+
+                {/* Media */}
+                {media.type === "video" && (
+                  <video
+                    src={media.src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    style={whisper.video}
+                  />
+                )}
+
+                {media.type === "images" && (
+                  <div style={isDesktop ? whisper.imageGrid : whisper.imageStack}>
+                    {media.items.map(({ src, alt }) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt={alt}
+                        style={whisper.image}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -456,5 +586,157 @@ const styles = {
     fontSize: "0.875rem",
     lineHeight: 1.6,
     color: "#8a7f6e",
+  },
+};
+
+/* ── Whisper / How-To section styles ── */
+const whisper = {
+  section: {
+    width: "100%",
+    padding: "0 24px 96px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+
+  rule: {
+    display: "flex",
+    alignItems: "center",
+    gap: 16,
+    width: "min(720px, 100%)",
+    marginBottom: 48,
+  },
+
+  ruleLine: {
+    flex: 1,
+    height: 1,
+    background: "linear-gradient(to right, transparent, rgba(151,130,98,0.35), transparent)",
+  },
+
+  ruleOrn: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.65rem",
+    letterSpacing: "0.3em",
+    color: "rgba(151,130,98,0.5)",
+    userSelect: "none",
+    whiteSpace: "nowrap",
+  },
+
+  header: {
+    textAlign: "center",
+    marginBottom: 64,
+    width: "min(640px, 100%)",
+  },
+
+  heading: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "clamp(1.9rem, 4.5vw, 2.9rem)",
+    color: "#F5ECCD",
+    margin: "0 0 14px",
+    lineHeight: 1.15,
+    letterSpacing: "0.02em",
+    textShadow: "0 0 40px rgba(245,200,100,0.18), 0 4px 16px rgba(0,0,0,0.7)",
+  },
+
+  intro: {
+    fontFamily: "var(--tw-font-message)",
+    fontStyle: "italic",
+    fontSize: "1.1rem",
+    color: "var(--tw-text-muted)",
+    margin: 0,
+    lineHeight: 1.65,
+  },
+
+  items: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 48,
+    width: "min(720px, 100%)",
+  },
+
+  item: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 0,
+    borderTop: "1px solid rgba(151,130,98,0.15)",
+    paddingTop: 36,
+  },
+
+  itemAccent: {
+    width: 2,
+    flexShrink: 0,
+    background: "linear-gradient(to bottom, rgba(151,130,98,0.7), rgba(151,130,98,0.08))",
+    marginRight: 24,
+    borderRadius: 1,
+    alignSelf: "stretch",
+  },
+
+  itemBody: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  itemHeadRow: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 14,
+    marginBottom: 10,
+  },
+
+  itemNumeral: {
+    fontFamily: "var(--tw-font-heading)",
+    fontSize: "1.15rem",
+    color: "rgba(151,130,98,0.6)",
+    letterSpacing: "0.05em",
+    lineHeight: 1,
+    flexShrink: 0,
+  },
+
+  itemHeading: {
+    fontFamily: "Lato, sans-serif",
+    fontWeight: 700,
+    fontSize: "0.8rem",
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "#C4AC84",
+    margin: 0,
+    lineHeight: 1.3,
+  },
+
+  itemText: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "0.9rem",
+    lineHeight: 1.7,
+    color: "#8a7f6e",
+    margin: "0 0 24px",
+    maxWidth: 580,
+  },
+
+  video: {
+    display: "block",
+    width: "100%",
+    borderRadius: 5,
+    border: "1px solid rgba(151,130,98,0.22)",
+    boxShadow: "0 12px 48px rgba(0,0,0,0.65)",
+  },
+
+  imageGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 12,
+  },
+
+  imageStack: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+
+  image: {
+    display: "block",
+    width: "100%",
+    borderRadius: 5,
+    border: "1px solid rgba(151,130,98,0.22)",
+    boxShadow: "0 12px 48px rgba(0,0,0,0.65)",
   },
 };
