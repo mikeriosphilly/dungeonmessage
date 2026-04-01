@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import Landing from "./pages/Landing";
 import StartTable from "./pages/StartTable";
 import JoinTable from "./pages/JoinTable";
@@ -39,6 +40,7 @@ export default function App() {
         </Routes>
       </div>
       <Footer />
+      <Analytics />
     </div>
   );
 }
