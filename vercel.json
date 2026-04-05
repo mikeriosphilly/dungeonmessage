@@ -1,15 +1,8 @@
 {
   "cleanUrls": true,
-  "headers": [
-    {
-      "source": "/((?!assets/).*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
-    }
-  ],
-  "rewrites": [
-    { "source": "/howto/:file", "destination": "/howto/:file" },
-    { "source": "/(.+)", "destination": "/" }
+  "routes": [
+    { "src": "/howto/(.*)", "dest": "/howto/$1" },
+    { "src": "/favicon_io/(.*)", "dest": "/favicon_io/$1" },
+    { "src": "/(.+)", "dest": "/" }
   ]
 }
