@@ -139,9 +139,17 @@ export default function Landing() {
       <Head>
         <title>DungeonMessage - Private GM-to-Player Messaging for D&amp;D and TTRPGs</title>
         <meta name="description" content="Skip Discord. Send secret messages, clues, and images to one player or everyone at your table, no player registration needed. Built for GMs and DMs." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://dungeonmessage.com/" />
         <meta property="og:title" content="DungeonMessage - Private GM-to-Player Messaging for D&amp;D and TTRPGs" />
         <meta property="og:description" content="Skip Discord. Send secret messages, clues, and images to one player or everyone at your table, no player registration needed. Built for GMs and DMs." />
-        <meta property="og:url" content="https://dungeonmessage.com/" />
+        <meta property="og:image" content="https://dungeonmessage.com/OG_Image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="DungeonMessage - Private GM-to-Player Messaging for D&amp;D and TTRPGs" />
+        <meta name="twitter:description" content="Skip Discord. Send secret messages, clues, and images to one player or everyone at your table, no player registration needed. Built for GMs and DMs." />
+        <meta name="twitter:image" content="https://dungeonmessage.com/OG_Image.jpg" />
       </Head>
       {/* ── Hero stage ── */}
       <div style={heroShell}>
