@@ -9,6 +9,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/howto/:file", "destination": "/howto/:file" },
     { "source": "/(.+)", "destination": "/" }
   ]
 }
