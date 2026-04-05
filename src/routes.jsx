@@ -12,10 +12,11 @@ export const routes = [
   {
     path: "/",
     element: <Layout />,
+    HydrateFallback: () => null,
     children: [
-      { index: true, element: <Landing /> },
+      { index: true, element: <Landing />, HydrateFallback: () => null },
       { path: "start", element: <StartTable /> },
-      { path: "join", element: <JoinTable /> },
+      { path: "join", element: <JoinTable />, HydrateFallback: () => null },
       { path: "gm/:gmSecret", element: <GmDashboard /> },
       { path: "table/:code", element: <PlayerFeed /> },
       { path: "privacy", element: <Privacy /> },
