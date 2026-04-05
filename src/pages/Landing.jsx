@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Head } from "vite-react-ssg";
 import logoVertical from "../assets/Logo-vertical.png";
 
 const WHISPER_ITEMS = [
@@ -48,7 +49,7 @@ const STEPS = [
 ];
 
 export default function Landing() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 700);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 700);
@@ -135,6 +136,13 @@ export default function Landing() {
 
   return (
     <div style={styles.page}>
+      <Head>
+        <title>DungeonMessage - Private GM-to-Player Messaging for D&amp;D and TTRPGs</title>
+        <meta name="description" content="Skip Discord. Send secret messages, clues, and images to one player or everyone at your table, no player registration needed. Built for GMs and DMs." />
+        <meta property="og:title" content="DungeonMessage - Private GM-to-Player Messaging for D&amp;D and TTRPGs" />
+        <meta property="og:description" content="Skip Discord. Send secret messages, clues, and images to one player or everyone at your table, no player registration needed. Built for GMs and DMs." />
+        <meta property="og:url" content="https://dungeonmessage.com/" />
+      </Head>
       {/* ── Hero stage ── */}
       <div style={heroShell}>
       <div style={isDesktop ? desktop.wrap : styles.wrap}>

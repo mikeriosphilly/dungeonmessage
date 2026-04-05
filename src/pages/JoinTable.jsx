@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { Head } from "vite-react-ssg";
 import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
@@ -169,6 +170,15 @@ export default function JoinTable() {
 
   return (
     <div style={styles.page}>
+      <Head>
+        <title>You've been invited to the table — DungeonMessage</title>
+        <meta name="description" content="Your Game Master is waiting. Join the table to receive secret messages, clues, and notes during your session." />
+        <meta property="og:title" content="You've been invited to the table" />
+        <meta property="og:description" content="Your Game Master is waiting. Join the table to receive secret messages, clues, and notes during your session." />
+        <meta property="og:url" content="https://dungeonmessage.com/join" />
+        <meta name="twitter:title" content="You've been invited to the table" />
+        <meta name="twitter:description" content="Your Game Master is waiting. Join the table to receive secret messages, clues, and notes during your session." />
+      </Head>
       <div style={styles.wrap}>
       <div style={styles.inner}>
 

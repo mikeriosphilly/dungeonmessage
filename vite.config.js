@@ -1,16 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  build: {
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "index.html"),
-        join: resolve(__dirname, "join.html"),
-      },
-    },
+  ssgOptions: {
+    includedRoutes: (paths) =>
+      paths.filter((p) => {
+        const normalized = p.startsWith("/") ? p : `/${p}`;
+        return ["/", "/join"].includes(normalized);
+      }),
   },
 });

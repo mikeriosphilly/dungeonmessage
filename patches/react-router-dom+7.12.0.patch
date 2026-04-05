@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-router-dom/package.json b/node_modules/react-router-dom/package.json
+index 0c9b39c..295382a 100644
+--- a/node_modules/react-router-dom/package.json
++++ b/node_modules/react-router-dom/package.json
+@@ -38,7 +38,11 @@
+         "default": "./dist/index.js"
+       }
+     },
+-    "./package.json": "./package.json"
++    "./package.json": "./package.json",
++    "./server.js": {
++      "import": "./dist/index.mjs",
++      "default": "./dist/index.js"
++    }
+   },
+   "wireit": {
+     "build": {
+diff --git a/node_modules/react-router-dom/server.js b/node_modules/react-router-dom/server.js
+new file mode 100644
+index 0000000..2071cb6
+--- /dev/null
++++ b/node_modules/react-router-dom/server.js
+@@ -0,0 +1 @@
++export { StaticRouterProvider, createStaticHandler, createStaticRouter } from "react-router-dom";
