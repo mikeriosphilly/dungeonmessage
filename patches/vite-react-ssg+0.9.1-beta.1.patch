@@ -1,0 +1,15 @@
+diff --git a/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DTTf7HZy.mjs b/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DTTf7HZy.mjs
+index c591d5b..211522b 100644
+--- a/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DTTf7HZy.mjs
++++ b/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DTTf7HZy.mjs
+@@ -37,9 +37,7 @@ function hydrate(app, container, renderOptions = {}) {
+     reactHydrate(app, container);
+   } else if (isReact19) {
+     import('react-dom/client').then(({ default: { hydrateRoot } }) => {
+-      React.startTransition(() => {
+-        hydrateRoot(container, app);
+-      });
++      hydrateRoot(container, app);
+     });
+   } else {
+     CopyReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.usingClientEntryPoint = true;
