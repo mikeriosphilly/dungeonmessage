@@ -43,6 +43,7 @@ function MagicText({ text }) {
 
 export default function PlayerFeed() {
   useLayoutEffect(() => {
+    window.scrollTo(0, 0);
     document.body.style.backgroundImage = `url(${bgPaper})`;
     document.body.style.backgroundSize = "420px 420px";
     return () => {
@@ -56,6 +57,7 @@ export default function PlayerFeed() {
 
   const tableCode = useMemo(() => (code || "").trim().toUpperCase(), [code]);
   const urlPlayerId = params.get("playerId");
+  const urlAvatarKey = params.get("avatarKey") || null;
 
   const storageKey = useMemo(() => `tw_playerId:${tableCode}`, [tableCode]);
   const openedStorageKey = useMemo(() => `tw_opened:${tableCode}`, [tableCode]);
@@ -370,7 +372,7 @@ export default function PlayerFeed() {
   return (
     <div style={styles.page}>
       <AppHeader
-        avatarSrc={player ? avatarSrcFromKey(player.avatar_key) : null}
+        avatarSrc={player ? avatarSrcFromKey(urlAvatarKey || player.avatar_key) : null}
         connected={isConnected}
       />
       <div style={styles.wrap}>

@@ -141,7 +141,7 @@ export default function JoinTable() {
         displayName: name,
         avatarKey,
       }));
-      navigate(`/table/${table.code}?playerId=${player.id}`);
+      navigate(`/table/${table.code}?playerId=${player.id}&avatarKey=${avatarKey}`);
     } catch (e) {
       setError(e?.message || "Could not join table.");
     } finally {
@@ -160,7 +160,7 @@ export default function JoinTable() {
         lastSession.displayName,
         lastSession.avatarKey,
       );
-      navigate(`/table/${table.code}?playerId=${player.id}`);
+      navigate(`/table/${table.code}?playerId=${player.id}&avatarKey=${lastSession.avatarKey}`);
     } catch (e) {
       setError(e?.message || "Could not rejoin that table. It may have expired.");
     } finally {
