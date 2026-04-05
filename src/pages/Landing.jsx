@@ -283,7 +283,7 @@ export default function Landing() {
               <div style={whisper.itemHeadRow}>
                 <dt style={whisper.itemHeading}>What is DungeonMessage?</dt>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
                 DungeonMessage is a free web-based messaging tool built for Dungeon Masters
                 and Game Masters running tabletop RPG sessions. It lets GMs send private
                 one-way messages, including text notes, clues, and images, directly to
@@ -292,10 +292,6 @@ export default function Landing() {
                 and Dragons, Pathfinder, Call of Cthulhu, Blades in the Dark, and any
                 other game where a GM needs to pass private information to players.
               </dd>
-              <div style={isDesktop ? whisper.imageGrid : whisper.imageStack}>
-                <img src="/howto/howto-envelope.jpg" alt="Sealed envelope appearing on a player's screen" style={whisper.image} loading="eager" fetchpriority="high" />
-                <img src="/howto/howto-messagewithimage.jpg" alt="Private message with an image attachment" style={whisper.image} loading="eager" fetchpriority="high" />
-              </div>
             </div>
           </div>
 
@@ -794,23 +790,4 @@ const whisper = {
     boxShadow: "0 12px 48px rgba(0,0,0,0.65)",
   },
 
-  imageGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 12,
-  },
-
-  imageStack: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-
-  image: {
-    display: "block",
-    width: "100%",
-    borderRadius: 5,
-    border: "1px solid rgba(151,130,98,0.22)",
-    boxShadow: "0 12px 48px rgba(0,0,0,0.65)",
-  },
 };
