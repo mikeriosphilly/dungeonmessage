@@ -3,32 +3,6 @@ import { Link } from "react-router-dom";
 import { Head } from "vite-react-ssg";
 import logoVertical from "../assets/Logo-vertical.png";
 
-const WHISPER_ITEMS = [
-  {
-    numeral: "I",
-    heading: "Share your table in seconds",
-    body: "The GM opens a table and gets a unique code. Share it as a link, display the QR code on screen, or just read it out loud. Players join instantly on any device with no app and no account required.",
-    media: { type: "video", src: "/howto/howto-share.webm" },
-  },
-  {
-    numeral: "II",
-    heading: "Craft and send your message",
-    body: "Type your message and attach an image if you want, such as a character portrait, a town map, or a handout. Then choose exactly who receives it. One player, several, or all of them. Nobody else at the table will ever see it.",
-    media: { type: "video", src: "/howto/howto-send.webm" },
-  },
-  {
-    numeral: "III",
-    heading: "Players receive it privately",
-    body: "A sealed envelope appears on their screen. They open it on their own time, discreetly. Perfect for sharing character portraits, location art, and handouts without cluttering your group chat.",
-    media: {
-      type: "images",
-      items: [
-        { src: "/howto/howto-envelope.jpg", alt: "Sealed envelope appearing on a player's screen" },
-        { src: "/howto/howto-messagewithimage.jpg", alt: "Private message with an image attachment" },
-      ],
-    },
-  },
-];
 
 const STEPS = [
   {
@@ -53,12 +27,13 @@ export default function Landing() {
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 700);
+    check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
 
   const [whisperVisible, setWhisperVisible] = useState(false);
-  const [visibleItems, setVisibleItems] = useState(() => WHISPER_ITEMS.map(() => false));
+  const [visibleItems, setVisibleItems] = useState(() => Array(5).fill(false));
   const whisperRef = useRef(null);
   const itemRefs = useRef([]);
 
@@ -268,8 +243,8 @@ export default function Landing() {
       </div>
       </div>{/* /heroShell */}
 
-      {/* ── Whisper Section ── */}
-      <section ref={whisperRef} style={whisper.section}>
+      {/* ── FAQ Section ── */}
+      <section id="faq" aria-label="Frequently Asked Questions" ref={whisperRef} style={whisper.section}>
         <style>{`
           @keyframes whisperFadeUp {
             from { opacity: 0; transform: translateY(32px); }
@@ -287,63 +262,147 @@ export default function Landing() {
           }}
         >
           <h2 style={whisper.heading}>I need to whisper something to you...</h2>
-          <p style={whisper.intro}>Every GM has said it. Now you can send it.</p>
         </div>
 
-        {/* Sub-sections */}
-        <div style={whisper.items}>
-          {WHISPER_ITEMS.map(({ heading, body, media }, i) => (
-            <div
-              key={i}
-              ref={(el) => { itemRefs.current[i] = el; }}
-              data-whisper-idx={i}
-              style={{
-                ...whisper.item,
-                ...(visibleItems[i]
-                  ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
-                  : { opacity: 0 }),
-              }}
-            >
-              {/* Left accent bar */}
-              <div style={whisper.itemAccent} />
+        {/* FAQ items */}
+        <dl style={whisper.items}>
 
-              <div style={whisper.itemBody}>
-                {/* Heading */}
-                <div style={whisper.itemHeadRow}>
-                  <h3 style={whisper.itemHeading}>{heading}</h3>
-                </div>
-
-                {/* Body */}
-                <p style={whisper.itemText}>{body}</p>
-
-                {/* Media */}
-                {media.type === "video" && (
-                  <video
-                    src={media.src}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    style={whisper.video}
-                  />
-                )}
-
-                {media.type === "images" && (
-                  <div style={isDesktop ? whisper.imageGrid : whisper.imageStack}>
-                    {media.items.map(({ src, alt }) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt={alt}
-                        style={whisper.image}
-                      />
-                    ))}
-                  </div>
-                )}
+          {/* Q1 — What is DungeonMessage? */}
+          <div
+            ref={(el) => { itemRefs.current[0] = el; }}
+            data-whisper-idx={0}
+            style={{
+              ...whisper.item,
+              ...(visibleItems[0]
+                ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
+                : { opacity: 0 }),
+            }}
+          >
+            <div style={whisper.itemAccent} />
+            <div style={whisper.itemBody}>
+              <div style={whisper.itemHeadRow}>
+                <dt style={whisper.itemHeading}>What is DungeonMessage?</dt>
+              </div>
+              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+                DungeonMessage is a free web-based messaging tool built for Dungeon Masters
+                and Game Masters running tabletop RPG sessions. It lets GMs send private
+                one-way messages, including text notes, clues, and images, directly to
+                individual players or the entire table during a session, without other
+                players seeing. It works with any tabletop RPG system, including Dungeons
+                and Dragons, Pathfinder, Call of Cthulhu, Blades in the Dark, and any
+                other game where a GM needs to pass private information to players.
+              </dd>
+              <div style={isDesktop ? whisper.imageGrid : whisper.imageStack}>
+                <img src="/howto/howto-envelope.jpg" alt="Sealed envelope appearing on a player's screen" style={whisper.image} />
+                <img src="/howto/howto-messagewithimage.jpg" alt="Private message with an image attachment" style={whisper.image} />
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Q2 — How is DungeonMessage different from Discord? */}
+          <div
+            ref={(el) => { itemRefs.current[1] = el; }}
+            data-whisper-idx={1}
+            style={{
+              ...whisper.item,
+              ...(visibleItems[1]
+                ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
+                : { opacity: 0 }),
+            }}
+          >
+            <div style={whisper.itemAccent} />
+            <div style={whisper.itemBody}>
+              <div style={whisper.itemHeadRow}>
+                <dt style={whisper.itemHeading}>How is DungeonMessage different from Discord or a group chat app?</dt>
+              </div>
+              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+                Group chat apps like Discord require all players to create accounts and
+                join a server before a session. DungeonMessage requires nothing from
+                players. The GM creates a session, shares a simple link, and players can
+                receive private messages instantly in their browser with no signup, no
+                registration, and no app to download. It is also purpose-built for
+                one-way GM-to-player communication, so there is no risk of players
+                accidentally seeing messages meant for someone else.
+              </dd>
+              <video src="/howto/howto-share.webm" autoPlay loop muted playsInline style={whisper.video} />
+            </div>
+          </div>
+
+          {/* Q3 — What kind of content can a GM send? */}
+          <div
+            ref={(el) => { itemRefs.current[2] = el; }}
+            data-whisper-idx={2}
+            style={{
+              ...whisper.item,
+              ...(visibleItems[2]
+                ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
+                : { opacity: 0 }),
+            }}
+          >
+            <div style={whisper.itemAccent} />
+            <div style={whisper.itemBody}>
+              <div style={whisper.itemHeadRow}>
+                <dt style={whisper.itemHeading}>What kind of content can a GM send through DungeonMessage?</dt>
+              </div>
+              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+                GMs can send text notes, secret clues, lore drops, in-character whispers,
+                images, and map fragments. Messages can go to a single player privately or
+                be broadcast to everyone at the table at once.
+              </dd>
+              <video src="/howto/howto-send.webm" autoPlay loop muted playsInline style={whisper.video} />
+            </div>
+          </div>
+
+          {/* Q4 — Does DungeonMessage work for online games? */}
+          <div
+            ref={(el) => { itemRefs.current[3] = el; }}
+            data-whisper-idx={3}
+            style={{
+              ...whisper.item,
+              ...(visibleItems[3]
+                ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
+                : { opacity: 0 }),
+            }}
+          >
+            <div style={whisper.itemAccent} />
+            <div style={whisper.itemBody}>
+              <div style={whisper.itemHeadRow}>
+                <dt style={whisper.itemHeading}>Does DungeonMessage work for online games?</dt>
+              </div>
+              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
+                Yes. Players receive messages through a browser link on their own devices,
+                making DungeonMessage a great companion tool for both in-person sessions
+                and online play via platforms like Roll20, Foundry VTT, or any video call
+                setup.
+              </dd>
+            </div>
+          </div>
+
+          {/* Q5 — Is DungeonMessage free? */}
+          <div
+            ref={(el) => { itemRefs.current[4] = el; }}
+            data-whisper-idx={4}
+            style={{
+              ...whisper.item,
+              ...(visibleItems[4]
+                ? { animation: "whisperFadeUp 0.85s cubic-bezier(0.22,1,0.36,1) both" }
+                : { opacity: 0 }),
+            }}
+          >
+            <div style={whisper.itemAccent} />
+            <div style={whisper.itemBody}>
+              <div style={whisper.itemHeadRow}>
+                <dt style={whisper.itemHeading}>Is DungeonMessage free?</dt>
+              </div>
+              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
+                Yes. DungeonMessage is free to use and the core features will always
+                remain free. A premium subscription with additional features is planned
+                for the future, but everything available today will stay free permanently.
+              </dd>
+            </div>
+          </div>
+
+        </dl>
       </section>
     </div>
   );
