@@ -293,8 +293,8 @@ export default function Landing() {
                 other game where a GM needs to pass private information to players.
               </dd>
               <div style={isDesktop ? whisper.imageGrid : whisper.imageStack}>
-                <img src="/howto/howto-envelope.jpg" alt="Sealed envelope appearing on a player's screen" style={whisper.image} loading="eager" />
-                <img src="/howto/howto-messagewithimage.jpg" alt="Private message with an image attachment" style={whisper.image} loading="eager" />
+                <img src="/howto/howto-envelope.jpg" alt="Sealed envelope appearing on a player's screen" style={whisper.image} loading="eager" fetchpriority="high" />
+                <img src="/howto/howto-messagewithimage.jpg" alt="Private message with an image attachment" style={whisper.image} loading="eager" fetchpriority="high" />
               </div>
             </div>
           </div>

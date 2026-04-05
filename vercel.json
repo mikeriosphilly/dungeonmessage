@@ -1,11 +1,14 @@
 {
   "cleanUrls": true,
-  "routes": [
-    { "src": "/howto/(.*\\.jpg)", "dest": "/howto/$1" },
-    { "src": "/howto/(.*\\.webm)", "dest": "/howto/$1" },
-    { "src": "/howto/(.*\\.png)", "dest": "/howto/$1" },
-    { "src": "/favicon_io/(.*)", "dest": "/favicon_io/$1" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "/(.+)", "dest": "/" }
+  "headers": [
+    {
+      "source": "/((?!assets/).*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.+)", "destination": "/" }
   ]
 }
