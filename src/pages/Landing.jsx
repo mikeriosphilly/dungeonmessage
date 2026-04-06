@@ -32,6 +32,13 @@ export default function Landing() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const [openItems, setOpenItems] = useState(new Set());
+  const toggleItem = (i) => setOpenItems((prev) => {
+    const next = new Set(prev);
+    next.has(i) ? next.delete(i) : next.add(i);
+    return next;
+  });
+
   const [whisperVisible, setWhisperVisible] = useState(false);
   const [visibleItems, setVisibleItems] = useState(() => Array(5).fill(false));
   const whisperRef = useRef(null);
@@ -108,6 +115,14 @@ export default function Landing() {
       </div>
     </div>
   );
+
+  const collapseStyle = (i) => ({
+    maxHeight: openItems.has(i) ? 600 : "2.5rem",
+    overflow: "hidden",
+    transition: "max-height 0.4s cubic-bezier(0.22,1,0.36,1)",
+    maskImage: openItems.has(i) ? "none" : "linear-gradient(to bottom, black 30%, transparent 100%)",
+    WebkitMaskImage: openItems.has(i) ? "none" : "linear-gradient(to bottom, black 30%, transparent 100%)",
+  });
 
   return (
     <div style={styles.page}>
@@ -280,18 +295,26 @@ export default function Landing() {
           >
             <div style={whisper.itemAccent} />
             <div style={whisper.itemBody}>
-              <div style={whisper.itemHeadRow}>
+              <div
+                style={whisper.itemHeadRow}
+                onClick={() => toggleItem(0)}
+                role="button" tabIndex={0} aria-expanded={openItems.has(0)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleItem(0); } }}
+              >
                 <dt style={whisper.itemHeading}>What is DungeonMessage?</dt>
+                <span style={{ ...whisper.chevron, transform: openItems.has(0) ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
-                DungeonMessage is a free web-based messaging tool built for Dungeon Masters
-                and Game Masters running tabletop RPG sessions. It lets GMs send private
-                one-way messages, including text notes, clues, and images, directly to
-                individual players or the entire table during a session, without other
-                players seeing. It works with any tabletop RPG system, including Dungeons
-                and Dragons, Pathfinder, Call of Cthulhu, Blades in the Dark, and any
-                other game where a GM needs to pass private information to players.
-              </dd>
+              <div style={collapseStyle(0)}>
+                <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
+                  DungeonMessage is a free web-based messaging tool built for Dungeon Masters
+                  and Game Masters running tabletop RPG sessions. It lets GMs send private
+                  one-way messages, including text notes, clues, and images, directly to
+                  individual players or the entire table during a session, without other
+                  players seeing. It works with any tabletop RPG system, including Dungeons
+                  and Dragons, Pathfinder, Call of Cthulhu, Blades in the Dark, and any
+                  other game where a GM needs to pass private information to players.
+                </dd>
+              </div>
             </div>
           </div>
 
@@ -308,19 +331,27 @@ export default function Landing() {
           >
             <div style={whisper.itemAccent} />
             <div style={whisper.itemBody}>
-              <div style={whisper.itemHeadRow}>
+              <div
+                style={whisper.itemHeadRow}
+                onClick={() => toggleItem(1)}
+                role="button" tabIndex={0} aria-expanded={openItems.has(1)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleItem(1); } }}
+              >
                 <dt style={whisper.itemHeading}>How is DungeonMessage different from Discord or a group chat app?</dt>
+                <span style={{ ...whisper.chevron, transform: openItems.has(1) ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
-                Group chat apps like Discord require all players to create accounts and
-                join a server before a session. DungeonMessage requires nothing from
-                players. The GM creates a session, shares a simple link, and players can
-                receive private messages instantly in their browser with no signup, no
-                registration, and no app to download. It is also purpose-built for
-                one-way GM-to-player communication, so there is no risk of players
-                accidentally seeing messages meant for someone else.
-              </dd>
-              <video src="/howto/howto-share.webm" autoPlay loop muted playsInline style={whisper.video} />
+              <div style={collapseStyle(1)}>
+                <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+                  Group chat apps like Discord require all players to create accounts and
+                  join a server before a session. DungeonMessage requires nothing from
+                  players. The GM creates a session, shares a simple link, and players can
+                  receive private messages instantly in their browser with no signup, no
+                  registration, and no app to download. It is also purpose-built for
+                  one-way GM-to-player communication, so there is no risk of players
+                  accidentally seeing messages meant for someone else.
+                </dd>
+                <video src="/howto/howto-share.webm" autoPlay loop muted playsInline style={whisper.video} />
+              </div>
             </div>
           </div>
 
@@ -337,15 +368,23 @@ export default function Landing() {
           >
             <div style={whisper.itemAccent} />
             <div style={whisper.itemBody}>
-              <div style={whisper.itemHeadRow}>
+              <div
+                style={whisper.itemHeadRow}
+                onClick={() => toggleItem(2)}
+                role="button" tabIndex={0} aria-expanded={openItems.has(2)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleItem(2); } }}
+              >
                 <dt style={whisper.itemHeading}>What kind of content can a GM send through DungeonMessage?</dt>
+                <span style={{ ...whisper.chevron, transform: openItems.has(2) ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
-                GMs can send text notes, secret clues, lore drops, in-character whispers,
-                images, and map fragments. Messages can go to a single player privately or
-                be broadcast to everyone at the table at once.
-              </dd>
-              <video src="/howto/howto-send.webm" autoPlay loop muted playsInline style={whisper.video} />
+              <div style={collapseStyle(2)}>
+                <dd style={{ ...whisper.itemText, marginLeft: 0 }}>
+                  GMs can send text notes, secret clues, lore drops, in-character whispers,
+                  images, and map fragments. Messages can go to a single player privately or
+                  be broadcast to everyone at the table at once.
+                </dd>
+                <video src="/howto/howto-send.webm" autoPlay loop muted playsInline style={whisper.video} />
+              </div>
             </div>
           </div>
 
@@ -362,15 +401,23 @@ export default function Landing() {
           >
             <div style={whisper.itemAccent} />
             <div style={whisper.itemBody}>
-              <div style={whisper.itemHeadRow}>
+              <div
+                style={whisper.itemHeadRow}
+                onClick={() => toggleItem(3)}
+                role="button" tabIndex={0} aria-expanded={openItems.has(3)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleItem(3); } }}
+              >
                 <dt style={whisper.itemHeading}>Does DungeonMessage work for online games?</dt>
+                <span style={{ ...whisper.chevron, transform: openItems.has(3) ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
-                Yes. Players receive messages through a browser link on their own devices,
-                making DungeonMessage a great companion tool for both in-person sessions
-                and online play via platforms like Roll20, Foundry VTT, or any video call
-                setup.
-              </dd>
+              <div style={collapseStyle(3)}>
+                <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
+                  Yes. Players receive messages through a browser link on their own devices,
+                  making DungeonMessage a great companion tool for both in-person sessions
+                  and online play via platforms like Roll20, Foundry VTT, or any video call
+                  setup.
+                </dd>
+              </div>
             </div>
           </div>
 
@@ -387,14 +434,22 @@ export default function Landing() {
           >
             <div style={whisper.itemAccent} />
             <div style={whisper.itemBody}>
-              <div style={whisper.itemHeadRow}>
+              <div
+                style={whisper.itemHeadRow}
+                onClick={() => toggleItem(4)}
+                role="button" tabIndex={0} aria-expanded={openItems.has(4)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleItem(4); } }}
+              >
                 <dt style={whisper.itemHeading}>Is DungeonMessage free?</dt>
+                <span style={{ ...whisper.chevron, transform: openItems.has(4) ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
               </div>
-              <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
-                Yes. DungeonMessage is free to use and the core features will always
-                remain free. A premium subscription with additional features is planned
-                for the future, but everything available today will stay free permanently.
-              </dd>
+              <div style={collapseStyle(4)}>
+                <dd style={{ ...whisper.itemText, marginLeft: 0, marginBottom: 0 }}>
+                  Yes. DungeonMessage is free to use and the core features will always
+                  remain free. A premium subscription with additional features is planned
+                  for the future, but everything available today will stay free permanently.
+                </dd>
+              </div>
             </div>
           </div>
 
@@ -748,9 +803,22 @@ const whisper = {
 
   itemHeadRow: {
     display: "flex",
-    alignItems: "baseline",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 14,
     marginBottom: 10,
+    cursor: "pointer",
+    userSelect: "none",
+  },
+
+  chevron: {
+    fontFamily: "Lato, sans-serif",
+    fontSize: "1.1rem",
+    color: "#978262",
+    flexShrink: 0,
+    display: "inline-block",
+    transition: "transform 0.3s ease",
+    lineHeight: 1,
   },
 
   itemNumeral: {
