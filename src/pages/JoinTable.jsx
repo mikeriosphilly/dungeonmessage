@@ -5,7 +5,6 @@ import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import { supabase } from "../lib/supabaseClient";
-import { cookieGet, cookieSet, cookieRemove } from "../lib/cookies";
 
 const GM_INACTIVITY_HOURS = 6;
 
@@ -69,18 +68,12 @@ export default function JoinTable() {
   }, []);
 
   useEffect(() => {
-    // Read from localStorage first; fall back to cookie (survives iOS Safari
-    // evicting localStorage for inactive tabs).
-    const raw = localStorage.getItem("tw_last_session") ?? cookieGet("tw_last_session");
+    const raw = localStorage.getItem("tw_last_session");
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw);
       if (!parsed?.tableCode) return;
       (async () => {
-        // Ensure auth is ready before making the table check; if auth was reset
-        // (e.g. after phone locked on iOS) get_table_public would fail silently
-        // and the "Jump back in" button would never appear.
-        try { await ensureAnonAuth(); } catch {}
         const { data } = await supabase.rpc("get_table_public", { p_code: parsed.tableCode });
         const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
@@ -90,7 +83,6 @@ export default function JoinTable() {
       })();
     } catch {
       localStorage.removeItem("tw_last_session");
-      cookieRemove("tw_last_session");
     }
   }, []);
 
@@ -144,13 +136,11 @@ export default function JoinTable() {
     try {
       await ensureAnonAuth();
       const { table, player } = await joinTable(code, name, avatarKey);
-      // Store in both localStorage and a cookie. The cookie survives iOS Safari
-      // evicting localStorage for inactive tabs, ensuring "Jump back in" still
-      // appears on next visit. playerId is included so onRejoin can navigate
-      // directly without creating a duplicate player row.
-      const sessionData = JSON.stringify({ tableCode: table.code, displayName: name, avatarKey, playerId: player.id });
-      localStorage.setItem("tw_last_session", sessionData);
-      cookieSet("tw_last_session", sessionData);
+      localStorage.setItem("tw_last_session", JSON.stringify({
+        tableCode: table.code,
+        displayName: name,
+        avatarKey,
+      }));
       navigate(`/table/${table.code}?playerId=${player.id}&avatarKey=${avatarKey}`);
     } catch (e) {
       setError(e?.message || "Could not join table.");
@@ -165,24 +155,6 @@ export default function JoinTable() {
     setError("");
     try {
       await ensureAnonAuth();
-
-      // Prefer the stored player ID so we don't create a duplicate player row.
-      // Check localStorage first, then fall back to the playerId embedded in
-      // the session cookie (persists when iOS Safari evicts localStorage).
-      const storedPlayerId = localStorage.getItem(`tw_playerId:${lastSession.tableCode}`)
-        || lastSession.playerId;
-
-      if (storedPlayerId) {
-        const { data: profileData } = await supabase.rpc("player_get_profile", {
-          p_player_id: storedPlayerId,
-        });
-        if (profileData?.player) {
-          navigate(`/table/${lastSession.tableCode}?playerId=${storedPlayerId}&avatarKey=${lastSession.avatarKey}`);
-          return;
-        }
-      }
-
-      // Stored player no longer exists — fall back to creating a new one.
       const { table, player } = await joinTable(
         lastSession.tableCode,
         lastSession.displayName,
