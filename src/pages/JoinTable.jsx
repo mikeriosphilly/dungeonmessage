@@ -74,6 +74,10 @@ export default function JoinTable() {
       const parsed = JSON.parse(raw);
       if (!parsed?.tableCode) return;
       (async () => {
+        // Ensure auth is ready before making the table check; if auth was reset
+        // (e.g. after phone locked on iOS) get_table_public would fail silently
+        // and the "Jump back in" button would never appear.
+        try { await ensureAnonAuth(); } catch {}
         const { data } = await supabase.rpc("get_table_public", { p_code: parsed.tableCode });
         const row = Array.isArray(data) ? data[0] : data;
         const table = row?.table ?? row ?? null;
@@ -155,6 +159,22 @@ export default function JoinTable() {
     setError("");
     try {
       await ensureAnonAuth();
+
+      // Prefer the stored player ID for this table so we don't create a duplicate.
+      // This matters when the player was erroneously redirected back here while
+      // the table was still active (e.g. stale auth token on iOS).
+      const storedPlayerId = localStorage.getItem(`tw_playerId:${lastSession.tableCode}`);
+      if (storedPlayerId) {
+        const { data: profileData } = await supabase.rpc("player_get_profile", {
+          p_player_id: storedPlayerId,
+        });
+        if (profileData?.player) {
+          navigate(`/table/${lastSession.tableCode}?playerId=${storedPlayerId}&avatarKey=${lastSession.avatarKey}`);
+          return;
+        }
+      }
+
+      // Stored player no longer exists — fall back to creating a new one.
       const { table, player } = await joinTable(
         lastSession.tableCode,
         lastSession.displayName,

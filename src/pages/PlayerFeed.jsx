@@ -229,9 +229,20 @@ export default function PlayerFeed() {
     if (error) {
       const msg = (error.message || "").toLowerCase();
 
-      // When the table is purged, player_get_inbox often ends up as "not allowed"
+      // "not allowed" is what player_get_inbox returns when the table is purged,
+      // but a stale auth token (e.g. after iOS suspends JS timers while the phone
+      // is locked) can produce the same error string. Verify by doing a public
+      // table lookup before treating this as a true expiry.
       if (msg.includes("not allowed")) {
-        setExpired(true);
+        const { data: tableCheck } = await supabase.rpc("get_table_public", {
+          p_code: tableCode,
+        });
+        const row = Array.isArray(tableCheck) ? tableCheck[0] : tableCheck;
+        const t = row?.table ?? row ?? null;
+        if (!t || t.status !== "active") {
+          setExpired(true);
+        }
+        // else: table still active → transient auth/network error, ignore silently
         return;
       }
 
@@ -240,7 +251,7 @@ export default function PlayerFeed() {
     }
 
     setMessages(data?.messages || []);
-  }, []);
+  }, [tableCode]);
 
   // Initial inbox load
   useEffect(() => {
@@ -252,9 +263,12 @@ export default function PlayerFeed() {
   useEffect(() => {
     if (!storedPlayerId) return;
 
-    function onResume() {
+    async function onResume() {
       // Only refresh when we're actually visible/active
       if (document.visibilityState === "visible") {
+        // iOS suspends JS timers while the screen is locked, which can let the
+        // Supabase auth token expire. Re-establish auth before fetching.
+        try { await ensureAnonAuth(); } catch {}
         refreshInbox(storedPlayerId);
       }
     }
