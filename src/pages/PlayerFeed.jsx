@@ -211,6 +211,8 @@ export default function PlayerFeed() {
         try { sessionStorage.setItem(`tw_display_name:${tableCode}`, data.player.display_name); } catch {}
         // Also write to cookie so it survives localStorage eviction on iOS Safari
         writeSessionCookie(tableCode, data.player.display_name, urlAvatarKey || data.player.avatar_key);
+        const cookieVerify = readSessionCookie(tableCode);
+        alert(`Cookie write test: name=${cookieVerify?.displayName || "FAILED"}, cookies=${document.cookie.length > 0 ? "accessible" : "empty/blocked"}`);
       }
       setLoadingPlayer(false);
     }
