@@ -64,3 +64,14 @@ export async function joinTable(code, displayName, avatarKey) {
 
   return { table, player };
 }
+
+export async function reclaimPlayer(playerId, displayName, tableCode) {
+  await ensureAnonAuth();
+  const { data, error } = await supabase.rpc("player_reclaim", {
+    p_player_id:    playerId,
+    p_display_name: displayName,
+    p_table_code:   tableCode,
+  });
+  if (error) throw error;
+  return data?.player ?? null;
+}

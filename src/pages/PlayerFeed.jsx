@@ -8,6 +8,7 @@ import {
 import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey, GM_AVATAR_SRC } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
+import { reclaimPlayer } from "../services/backend";
 import envelopeImg from "../assets/envelope.png";
 import bgPaper from "../assets/bg_paper.jpg";
 import bgWood from "../assets/bg_wood.jpg";
@@ -205,6 +206,9 @@ export default function PlayerFeed() {
       }
 
       setPlayer(data?.player || null);
+      if (data?.player?.display_name) {
+        try { sessionStorage.setItem(`tw_display_name:${tableCode}`, data.player.display_name); } catch {}
+      }
       setLoadingPlayer(false);
     }
 
@@ -229,10 +233,45 @@ export default function PlayerFeed() {
     if (error) {
       const msg = (error.message || "").toLowerCase();
 
-      // When the table is purged, player_get_inbox often ends up as "not allowed"
       if (msg.includes("not allowed")) {
-        setExpired(true);
-        return;
+        // Two causes: (1) table expired, or (2) auth UID rotated (iOS Safari).
+        // Check table status to distinguish them before showing expiry screen.
+        const { data: tableRes } = await supabase.rpc("get_table_public", { p_code: tableCode });
+        const row = Array.isArray(tableRes) ? tableRes[0] : tableRes;
+        const liveTable = row?.table ?? row ?? null;
+
+        if (!liveTable || liveTable.status !== "active") {
+          setExpired(true);
+          return;
+        }
+
+        // Table is active — auth UID likely rotated. Attempt silent reclaim.
+        try {
+          const displayName =
+            sessionStorage.getItem(`tw_display_name:${tableCode}`) ||
+            (() => {
+              try {
+                const last = JSON.parse(localStorage.getItem("tw_last_session") || "{}");
+                return last?.tableCode === tableCode ? last.displayName : null;
+              } catch { return null; }
+            })();
+
+          if (!displayName) { setExpired(true); return; }
+
+          await reclaimPlayer(playerId, displayName, tableCode);
+
+          // Reclaim succeeded — retry inbox (user_id in DB now matches auth.uid())
+          const { data: retry, error: retryErr } = await supabase.rpc("player_get_inbox", {
+            p_player_id: playerId,
+            p_limit: 50,
+          });
+          if (retryErr) { setError(retryErr.message); return; }
+          setMessages(retry?.messages || []);
+          return;
+        } catch {
+          setExpired(true);
+          return;
+        }
       }
 
       setError(error.message);
@@ -240,7 +279,7 @@ export default function PlayerFeed() {
     }
 
     setMessages(data?.messages || []);
-  }, []);
+  }, [tableCode]);
 
   // Initial inbox load
   useEffect(() => {

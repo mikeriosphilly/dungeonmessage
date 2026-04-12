@@ -8,6 +8,23 @@ import { supabase } from "../lib/supabaseClient";
 
 const GM_INACTIVITY_HOURS = 6;
 
+const SESSION_COOKIE = "tw_session_hint";
+
+function writeSessionCookie(tableCode, displayName, avatarKey) {
+  try {
+    const val = encodeURIComponent(JSON.stringify({ tableCode, displayName, avatarKey }));
+    document.cookie = `${SESSION_COOKIE}=${val}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+  } catch {}
+}
+
+function readSessionCookie() {
+  try {
+    const match = document.cookie.split("; ").find((c) => c.startsWith(`${SESSION_COOKIE}=`));
+    if (!match) return null;
+    return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
+  } catch { return null; }
+}
+
 export default function JoinTable() {
   const [avatarKey, setAvatarKey] = useState(() => randomAvatarKey());
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -68,7 +85,14 @@ export default function JoinTable() {
   }, []);
 
   useEffect(() => {
-    const raw = localStorage.getItem("tw_last_session");
+    if (!authReady) return;
+
+    let raw = localStorage.getItem("tw_last_session");
+    if (!raw) {
+      // localStorage may have been evicted — try cookie backup
+      const fromCookie = readSessionCookie();
+      if (fromCookie) raw = JSON.stringify(fromCookie);
+    }
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw);
@@ -84,7 +108,7 @@ export default function JoinTable() {
     } catch {
       localStorage.removeItem("tw_last_session");
     }
-  }, []);
+  }, [authReady]);
 
   useEffect(() => {
     function onDown(e) {
@@ -141,6 +165,7 @@ export default function JoinTable() {
         displayName: name,
         avatarKey,
       }));
+      writeSessionCookie(table.code, name, avatarKey);
       navigate(`/table/${table.code}?playerId=${player.id}&avatarKey=${avatarKey}`);
     } catch (e) {
       setError(e?.message || "Could not join table.");
@@ -155,11 +180,27 @@ export default function JoinTable() {
     setError("");
     try {
       await ensureAnonAuth();
+
+      // Try to use the stored playerId directly — no DB write, no duplicate
+      const storedPlayerId = localStorage.getItem(`tw_playerId:${lastSession.tableCode}`);
+      if (storedPlayerId) {
+        const { data: profileData, error: profileErr } = await supabase.rpc(
+          "player_get_profile",
+          { p_player_id: storedPlayerId }
+        );
+        if (!profileErr && profileData?.player) {
+          navigate(`/table/${lastSession.tableCode}?playerId=${storedPlayerId}&avatarKey=${lastSession.avatarKey}`);
+          return;
+        }
+      }
+
+      // Profile check failed or no stored ID — use joinTable (upserts, no duplicate)
       const { table, player } = await joinTable(
         lastSession.tableCode,
         lastSession.displayName,
         lastSession.avatarKey,
       );
+      writeSessionCookie(table.code, lastSession.displayName, lastSession.avatarKey);
       navigate(`/table/${table.code}?playerId=${player.id}&avatarKey=${lastSession.avatarKey}`);
     } catch (e) {
       setError(e?.message || "Could not rejoin that table. It may have expired.");
