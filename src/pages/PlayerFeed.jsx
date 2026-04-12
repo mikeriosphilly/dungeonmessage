@@ -256,9 +256,18 @@ export default function PlayerFeed() {
           } catch { return null; }
         })();
 
-        alert(`displayName - session: ${fromSession}, local: ${fromLocal}`);
+        const fromCookie = (() => {
+          try {
+            const match = document.cookie.split("; ").find((c) => c.startsWith("tw_session_hint="));
+            if (!match) return null;
+            const parsed = JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
+            return parsed?.tableCode === tableCode ? parsed.displayName : null;
+          } catch { return null; }
+        })();
 
-        const displayName = fromSession || fromLocal;
+        alert(`displayName - session: ${fromSession}, local: ${fromLocal}, cookie: ${fromCookie}`);
+
+        const displayName = fromSession || fromLocal || fromCookie;
 
         if (!displayName) {
           alert("No displayName found - setting expired");
