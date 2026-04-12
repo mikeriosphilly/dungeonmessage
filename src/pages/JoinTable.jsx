@@ -5,25 +5,9 @@ import { joinTable } from "../services/backend";
 import { avatarSrcFromKey, randomAvatarKey, AVATAR_KEYS } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import { supabase } from "../lib/supabaseClient";
+import { writeSessionCookie, readSessionCookie } from "../lib/sessionCookie";
 
 const GM_INACTIVITY_HOURS = 6;
-
-const SESSION_COOKIE = "tw_session_hint";
-
-function writeSessionCookie(tableCode, displayName, avatarKey) {
-  try {
-    const val = encodeURIComponent(JSON.stringify({ tableCode, displayName, avatarKey }));
-    document.cookie = `${SESSION_COOKIE}=${val}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
-  } catch {}
-}
-
-function readSessionCookie() {
-  try {
-    const match = document.cookie.split("; ").find((c) => c.startsWith(`${SESSION_COOKIE}=`));
-    if (!match) return null;
-    return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
-  } catch { return null; }
-}
 
 export default function JoinTable() {
   const [avatarKey, setAvatarKey] = useState(() => randomAvatarKey());
@@ -91,7 +75,7 @@ export default function JoinTable() {
     if (!raw) {
       // localStorage may have been evicted — try cookie backup
       const fromCookie = readSessionCookie();
-      if (fromCookie) raw = JSON.stringify(fromCookie);
+      if (fromCookie) raw = JSON.stringify(fromCookie);  // tableCode filter not needed here; we display whatever session was last stored
     }
     if (!raw) return;
     try {

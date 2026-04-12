@@ -9,6 +9,7 @@ import { supabase } from "../lib/supabaseClient";
 import { avatarSrcFromKey, GM_AVATAR_SRC } from "../lib/avatars";
 import { ensureAnonAuth } from "../lib/auth";
 import { reclaimPlayer } from "../services/backend";
+import { writeSessionCookie, readSessionCookie } from "../lib/sessionCookie";
 import envelopeImg from "../assets/envelope.png";
 import bgPaper from "../assets/bg_paper.jpg";
 import bgWood from "../assets/bg_wood.jpg";
@@ -208,6 +209,8 @@ export default function PlayerFeed() {
       setPlayer(data?.player || null);
       if (data?.player?.display_name) {
         try { sessionStorage.setItem(`tw_display_name:${tableCode}`, data.player.display_name); } catch {}
+        // Also write to cookie so it survives localStorage eviction on iOS Safari
+        writeSessionCookie(tableCode, data.player.display_name, urlAvatarKey || data.player.avatar_key);
       }
       setLoadingPlayer(false);
     }
@@ -256,14 +259,7 @@ export default function PlayerFeed() {
           } catch { return null; }
         })();
 
-        const fromCookie = (() => {
-          try {
-            const match = document.cookie.split("; ").find((c) => c.startsWith("tw_session_hint="));
-            if (!match) return null;
-            const parsed = JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
-            return parsed?.tableCode === tableCode ? parsed.displayName : null;
-          } catch { return null; }
-        })();
+        const fromCookie = readSessionCookie(tableCode)?.displayName || null;
 
         alert(`displayName - session: ${fromSession}, local: ${fromLocal}, cookie: ${fromCookie}`);
 
