@@ -234,31 +234,43 @@ export default function PlayerFeed() {
       const msg = (error.message || "").toLowerCase();
 
       if (msg.includes("not allowed")) {
-        // Two causes: (1) table expired, or (2) auth UID rotated (iOS Safari).
-        // Check table status to distinguish them before showing expiry screen.
+        alert(`Debug: tableCode=${tableCode}, playerId=${playerId}`);
+
         const { data: tableRes } = await supabase.rpc("get_table_public", { p_code: tableCode });
         const row = Array.isArray(tableRes) ? tableRes[0] : tableRes;
         const liveTable = row?.table ?? row ?? null;
 
+        alert(`Table status: ${liveTable?.status || "null"}, name: ${liveTable?.name || "null"}`);
+
         if (!liveTable || liveTable.status !== "active") {
+          alert("Table not active - setting expired");
           setExpired(true);
           return;
         }
 
-        // Table is active — auth UID likely rotated. Attempt silent reclaim.
+        const fromSession = sessionStorage.getItem(`tw_display_name:${tableCode}`);
+        const fromLocal = (() => {
+          try {
+            const last = JSON.parse(localStorage.getItem("tw_last_session") || "{}");
+            return last?.tableCode === tableCode ? last.displayName : null;
+          } catch { return null; }
+        })();
+
+        alert(`displayName - session: ${fromSession}, local: ${fromLocal}`);
+
+        const displayName = fromSession || fromLocal;
+
+        if (!displayName) {
+          alert("No displayName found - setting expired");
+          setExpired(true);
+          return;
+        }
+
+        alert(`Attempting reclaim for: ${displayName}`);
+
         try {
-          const displayName =
-            sessionStorage.getItem(`tw_display_name:${tableCode}`) ||
-            (() => {
-              try {
-                const last = JSON.parse(localStorage.getItem("tw_last_session") || "{}");
-                return last?.tableCode === tableCode ? last.displayName : null;
-              } catch { return null; }
-            })();
-
-          if (!displayName) { setExpired(true); return; }
-
           await reclaimPlayer(playerId, displayName, tableCode);
+          alert("Reclaim succeeded - retrying inbox");
 
           // Reclaim succeeded — retry inbox (user_id in DB now matches auth.uid())
           const { data: retry, error: retryErr } = await supabase.rpc("player_get_inbox", {
@@ -268,7 +280,8 @@ export default function PlayerFeed() {
           if (retryErr) { setError(retryErr.message); return; }
           setMessages(retry?.messages || []);
           return;
-        } catch {
+        } catch (e) {
+          alert(`Reclaim failed: ${e.message}`);
           setExpired(true);
           return;
         }
