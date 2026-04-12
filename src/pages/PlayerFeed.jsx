@@ -211,8 +211,6 @@ export default function PlayerFeed() {
         try { sessionStorage.setItem(`tw_display_name:${tableCode}`, data.player.display_name); } catch {}
         // Also write to cookie so it survives localStorage eviction on iOS Safari
         writeSessionCookie(tableCode, data.player.display_name, urlAvatarKey || data.player.avatar_key);
-        const cookieVerify = readSessionCookie(tableCode);
-        alert(`Cookie write test: name=${cookieVerify?.displayName || "FAILED"}, cookies=${document.cookie.length > 0 ? "accessible" : "empty/blocked"}`);
       }
       setLoadingPlayer(false);
     }
@@ -239,45 +237,33 @@ export default function PlayerFeed() {
       const msg = (error.message || "").toLowerCase();
 
       if (msg.includes("not allowed")) {
-        alert(`Debug: tableCode=${tableCode}, playerId=${playerId}`);
-
+        // Two causes: (1) table expired, or (2) auth UID rotated (iOS Safari).
+        // Check table status to distinguish them before showing expiry screen.
         const { data: tableRes } = await supabase.rpc("get_table_public", { p_code: tableCode });
         const row = Array.isArray(tableRes) ? tableRes[0] : tableRes;
         const liveTable = row?.table ?? row ?? null;
 
-        alert(`Table status: ${liveTable?.status || "null"}, name: ${liveTable?.name || "null"}`);
-
         if (!liveTable || liveTable.status !== "active") {
-          alert("Table not active - setting expired");
           setExpired(true);
           return;
         }
 
-        const fromSession = sessionStorage.getItem(`tw_display_name:${tableCode}`);
-        const fromLocal = (() => {
-          try {
-            const last = JSON.parse(localStorage.getItem("tw_last_session") || "{}");
-            return last?.tableCode === tableCode ? last.displayName : null;
-          } catch { return null; }
-        })();
-
-        const fromCookie = readSessionCookie(tableCode)?.displayName || null;
-
-        alert(`displayName - session: ${fromSession}, local: ${fromLocal}, cookie: ${fromCookie}`);
-
-        const displayName = fromSession || fromLocal || fromCookie;
-
-        if (!displayName) {
-          alert("No displayName found - setting expired");
-          setExpired(true);
-          return;
-        }
-
-        alert(`Attempting reclaim for: ${displayName}`);
-
+        // Table is active — auth UID likely rotated. Attempt silent reclaim.
         try {
+          const displayName =
+            sessionStorage.getItem(`tw_display_name:${tableCode}`) ||
+            (() => {
+              try {
+                const last = JSON.parse(localStorage.getItem("tw_last_session") || "{}");
+                return last?.tableCode === tableCode ? last.displayName : null;
+              } catch { return null; }
+            })() ||
+            readSessionCookie(tableCode)?.displayName ||
+            null;
+
+          if (!displayName) { setExpired(true); return; }
+
           await reclaimPlayer(playerId, displayName, tableCode);
-          alert("Reclaim succeeded - retrying inbox");
 
           // Reclaim succeeded — retry inbox (user_id in DB now matches auth.uid())
           const { data: retry, error: retryErr } = await supabase.rpc("player_get_inbox", {
@@ -287,8 +273,7 @@ export default function PlayerFeed() {
           if (retryErr) { setError(retryErr.message); return; }
           setMessages(retry?.messages || []);
           return;
-        } catch (e) {
-          alert(`Reclaim failed: ${e.message}`);
+        } catch {
           setExpired(true);
           return;
         }
